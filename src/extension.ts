@@ -7,6 +7,7 @@ import path = require("path");
 import * as ev3 from "./ev3/src/extension";
 import {toggleLineHighlight, highlightDeactivate} from "./commands/lineHighlighter";
 import { setShouldSpeak } from "./commands/text";
+import { updateAudioFlagDecorations} from "./commands/text";
 import {
 	accessCommands,
 	hubCommands,
@@ -30,6 +31,7 @@ const outputChannel = vscode.window.createOutputChannel(product + " Output");
 export const logger = new Logger(outputChannel);
 
 let parser: pl.Parser = new pl.Parser();
+export let audioFlagDecorationType: vscode.TextEditorDecorationType;
 export const rootDir = path.dirname(__filename);
 export function activate(context: vscode.ExtensionContext) {
 	let config = new Configuration(context);
@@ -84,6 +86,22 @@ export function activate(context: vscode.ExtensionContext) {
 	ev3.activate(context);
 	toggleLineHighlight();
 	setShouldSpeak();
+
+	// Create the audio flag decoration.
+	audioFlagDecorationType = vscode.window.createTextEditorDecorationType({
+		gutterIconPath: context.asAbsolutePath("/media/audioflagicon.png"),
+		gutterIconSize: "contain"
+	});
+
+	// Update the audio flag decorations.
+	updateAudioFlagDecorations();
+
+	// Event listener to update audio flag decorations on text editor change.
+	vscode.window.onDidChangeActiveTextEditor(editor => {
+		if (editor) {
+			updateAudioFlagDecorations();
+		}
+	});
 
 	vscode.window.showInformationMessage("Mind Reader finished loading!");
 }
