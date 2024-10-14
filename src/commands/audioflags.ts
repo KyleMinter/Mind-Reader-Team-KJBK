@@ -20,6 +20,10 @@ export const audioFlagCommands: CommandEntry[] = [
     {
         name: "mind-reader.deleteAudioFlag",
         callback: deleteAudioFlag
+    },
+    {
+        name: "mind-reader.moveToAudioFlag",
+        callback: moveToAudioFlag
     }
 ];
 
@@ -141,6 +145,40 @@ export function deleteAudioFlag(): void {
 
     editor.revealRange(editor.selection, 1); // Make sure cursor is within range
     window.showTextDocument(editor.document, editor.viewColumn); // You are able to type without reclicking in document
+}
+
+export function moveToAudioFlag(): void {
+    const editor: TextEditor | undefined = window.activeTextEditor;
+
+    // Throw error if no editor open
+    if (!editor) {
+        outputErrorMessage("AddAudioFlag: No Active Editor");
+        return;
+    }
+
+    // Throw error an audio flag isn't on the active line.
+    if (audioFlagPositions.length === 0) {
+        outputErrorMessage("MoveToAudioFlag: No Prexisting Audio Flag Present");
+        return;
+    }
+    
+    let currentLine = editor.selection.active.line; // Save previous position
+    
+    // TODO: fix issue where if a flag set on the last line, the cursor will sometimes be incorrectly moved to it instead of the next one in the document.
+    audioFlagPositions.forEach(lineNum => {
+        if (lineNum-1 > currentLine)
+        {
+            const lastCharacter = editor.document.lineAt(lineNum-1).text.length;
+            let newPosition = new Position(lineNum-1, lastCharacter); // Assign new position to audio flag
+
+            const newSelection = new Selection(newPosition, newPosition);
+            editor.selection = newSelection; // Apply change to editor
+
+            editor.revealRange(editor.selection, 1); // Make sure cursor is within range
+            window.showTextDocument(editor.document, editor.viewColumn); // You are able to type without reclicking in document
+            return;
+        }
+    });
 }
 
 // Helper function that updates the audio flag decorations for the active editor
