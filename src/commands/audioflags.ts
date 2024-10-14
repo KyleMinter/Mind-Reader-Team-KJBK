@@ -39,7 +39,52 @@ export function outputErrorMessage(message:string) {
 
 
 // Set to store the audio flag positions
-export let audioFlagPositions = new Set<number>();
+export let audioFlagPositions: number[] = [];
+let lineCount: number | undefined = undefined;
+
+// Event listener to update audio flag positions upon lines being added/removed from the active document
+workspace.onDidChangeTextDocument(event => {
+    // Get the new line count after the change was made.
+    let newLineCount = event.document.lineCount;
+
+    // If the previous line count is undefined then extension is probably starting up. In this case we will assign the line count var for the first time.
+    // TODO: this is really jank. should make this more robust at some point.
+    if (!lineCount)
+    {
+        lineCount = newLineCount;
+        return;
+    }
+
+    // If the new line count differs from the previous line count then we will adjust the audio flag positions.
+    if (newLineCount !== lineCount)
+    {
+        // Get the line where the change was made.
+        let start: number = event.contentChanges[0].range.start.line;
+
+        // For every audio flag that is positioned on a line after the change, we will update it's position.
+        audioFlagPositions.forEach((lineNum, index) => {
+            if (lineNum >= start && lineCount)
+            {
+                audioFlagPositions[index] = lineNum + (newLineCount - lineCount);
+            }
+        });
+
+        // Update the line count.
+        lineCount = newLineCount;
+
+        // Update the audio flag decorations now that their positions have changed.
+        updateAudioFlagDecorations();
+    }
+})
+
+// Event listener to update audio flag decorations on text editor change.
+window.onDidChangeActiveTextEditor(event => {
+    if (event) {
+        lineCount = event.document.lineCount;
+        updateAudioFlagDecorations();
+    }
+});
+
 
 export function addAudioFlag(): void {
     const editor: TextEditor | undefined = window.activeTextEditor;
@@ -51,13 +96,14 @@ export function addAudioFlag(): void {
     }
     
     // Throw error if there is already an audio flag on the active line.
-    if (audioFlagPositions.has(fetchLineNumber(editor))) {
+    if (audioFlagPositions.indexOf(fetchLineNumber(editor)) !== -1) {
         outputErrorMessage("AddAudioFlag: Prexisting Audio Flag Present");
         return;
     }
 
     // Add the audio flag to the position set.
-    audioFlagPositions.add(fetchLineNumber(editor));
+    audioFlagPositions.push(fetchLineNumber(editor));
+    audioFlagPositions.sort();
 
     // Update the audio flag decorations.
     updateAudioFlagDecorations();
@@ -79,14 +125,16 @@ export function deleteAudioFlag(): void {
         return;
     }
     
+    const index = audioFlagPositions.indexOf(fetchLineNumber(editor));
+
     // Throw error an audio flag isn't on the active line.
-    if (!audioFlagPositions.has(fetchLineNumber(editor))) {
+    if (index === -1) {
         outputErrorMessage("DeleteAudioFlag: No Prexisting Audio Flag Present");
         return;
     }
     
     // Remove the audio flag from the position set.
-    audioFlagPositions.delete(fetchLineNumber(editor));
+    audioFlagPositions.splice(index, 1);
 
     // Update the audio flag decorations.
     updateAudioFlagDecorations();

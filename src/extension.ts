@@ -101,13 +101,6 @@ export function activate(context: vscode.ExtensionContext) {
 	// Update the audio flag decorations.
 	updateAudioFlagDecorations();
 
-	// Event listener to update audio flag decorations on text editor change.
-	vscode.window.onDidChangeActiveTextEditor(editor => {
-		if (editor) {
-			updateAudioFlagDecorations();
-		}
-	});
-
 	vscode.window.showInformationMessage("Mind Reader finished loading!");
 }
 
