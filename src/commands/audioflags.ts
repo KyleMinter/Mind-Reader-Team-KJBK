@@ -105,9 +105,11 @@ export function addAudioFlag(): void {
         return;
     }
 
-    // Add the audio flag to the position set.
+    // Add the audio flag to the position set and sort the set in numerical order.
     audioFlagPositions.push(fetchLineNumber(editor));
-    audioFlagPositions.sort();
+    audioFlagPositions.sort(function(a, b) {
+        return a - b;
+    });
 
     // Update the audio flag decorations.
     updateAudioFlagDecorations();
@@ -163,22 +165,40 @@ export function moveToAudioFlag(): void {
     }
     
     let currentLine = editor.selection.active.line; // Save previous position
-    
+
     // TODO: fix issue where if a flag set on the last line, the cursor will sometimes be incorrectly moved to it instead of the next one in the document.
-    audioFlagPositions.forEach(lineNum => {
-        if (lineNum-1 > currentLine)
-        {
-            const lastCharacter = editor.document.lineAt(lineNum-1).text.length;
-            let newPosition = new Position(lineNum-1, lastCharacter); // Assign new position to audio flag
 
-            const newSelection = new Selection(newPosition, newPosition);
-            editor.selection = newSelection; // Apply change to editor
+    // Check if the cursor is already at or past the line number the last audio flag is on. If it is set the cursor to the first audio flag in the file.
+    if (audioFlagPositions[audioFlagPositions.length - 1] - 1 <= currentLine)
+    {
+        const line = audioFlagPositions[0];
+        const lastCharacter = editor.document.lineAt(audioFlagPositions[0]).text.length;
+        let newPosition = new Position(line-1, lastCharacter); // Assign new position to audio flag
 
-            editor.revealRange(editor.selection, 1); // Make sure cursor is within range
-            window.showTextDocument(editor.document, editor.viewColumn); // You are able to type without reclicking in document
-            return;
-        }
-    });
+        const newSelection = new Selection(newPosition, newPosition);
+        editor.selection = newSelection; // Apply change to editor
+
+        editor.revealRange(editor.selection, 1); // Make sure cursor is within range
+        window.showTextDocument(editor.document, editor.viewColumn); // You are able to type without reclicking in document
+        return;
+    }
+    else
+    {
+        audioFlagPositions.forEach(lineNum => {
+            if (lineNum-1 > currentLine)
+            {
+                const lastCharacter = editor.document.lineAt(lineNum-1).text.length;
+                let newPosition = new Position(lineNum-1, lastCharacter); // Assign new position to audio flag
+    
+                const newSelection = new Selection(newPosition, newPosition);
+                editor.selection = newSelection; // Apply change to editor
+    
+                editor.revealRange(editor.selection, 1); // Make sure cursor is within range
+                window.showTextDocument(editor.document, editor.viewColumn); // You are able to type without reclicking in document
+                return;
+            }
+        });
+    }
 }
 
 // Helper function that updates the audio flag decorations for the active editor
