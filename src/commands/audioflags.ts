@@ -35,10 +35,10 @@ export function outputErrorMessage(message:string) {
 /** Helper Function
  ** This function returns the line number of the active text editor window
  *  @param editor
- *  @returns editor!.selection.active.line + 1
+ *  @returns editor!.selection.active.line
  */
- export function fetchLineNumber(editor: TextEditor | undefined): number {
-    return editor!.selection.active.line + 1; // line numbers start at 1, not 0, so we add 1 to the result
+ export function getLineNumber(editor: TextEditor | undefined): number {
+    return editor!.selection.active.line;
 }
 
 
@@ -100,13 +100,13 @@ export function addAudioFlag(): void {
     }
     
     // Throw error if there is already an audio flag on the active line.
-    if (audioFlagPositions.indexOf(fetchLineNumber(editor)) !== -1) {
+    if (audioFlagPositions.indexOf(getLineNumber(editor)) !== -1) {
         outputErrorMessage("AddAudioFlag: Prexisting Audio Flag Present");
         return;
     }
 
     // Add the audio flag to the position set and sort the set in numerical order.
-    audioFlagPositions.push(fetchLineNumber(editor));
+    audioFlagPositions.push(getLineNumber(editor));
     audioFlagPositions.sort(function(a, b) {
         return a - b;
     });
@@ -131,7 +131,7 @@ export function deleteAudioFlag(): void {
         return;
     }
     
-    const index = audioFlagPositions.indexOf(fetchLineNumber(editor));
+    const index = audioFlagPositions.indexOf(getLineNumber(editor));
 
     // Throw error an audio flag isn't on the active line.
     if (index === -1) {
@@ -164,39 +164,42 @@ export function moveToAudioFlag(): void {
         return;
     }
     
-    let currentLine = editor.selection.active.line; // Save previous position
 
     // TODO: fix issue where if a flag set on the last line, the cursor will sometimes be incorrectly moved to it instead of the next one in the document.
 
+    let currentLine = editor.selection.active.line; // Save previous position
     let flagLine;
     let lastCharacter;
 
     // Check if the cursor is already at or past the line number the last audio flag is on. If it is set the cursor to the first audio flag in the file.
-    if (audioFlagPositions[audioFlagPositions.length - 1] - 1 <= currentLine)
+    if (audioFlagPositions[audioFlagPositions.length - 1] <= currentLine)
     {
         flagLine = audioFlagPositions[0];
         lastCharacter = editor.document.lineAt(audioFlagPositions[0]).text.length;
     }
     else
     {
-        audioFlagPositions.forEach(lineNum => {
-            if (lineNum-1 > currentLine)
+        for (let i = 0; i < audioFlagPositions.length; i++)
+        {
+            let lineNumber = audioFlagPositions[i];
+            if (lineNumber > currentLine)
             {
-                flagLine = lineNum;
-                lastCharacter = editor.document.lineAt(lineNum-1).text.length;
+                flagLine = lineNumber;
+                lastCharacter = editor.document.lineAt(lineNumber).text.length;
+                break;
             }
-        });
+        }
     }
 
     // This should never happen, but we check if flagLiune and lastCharacter are undefined so Typescript doesn't complain.
-    if (!flagLine || !lastCharacter)
+    if (flagLine === undefined || lastCharacter === undefined)
     {
         outputErrorMessage("MoveToAudioFlag: Move Cursor Error");
         return;
     }
 
     // Move the cursor and whatnot.
-    let newPosition = new Position(flagLine - 1, lastCharacter); // Assign new position to audio flag
+    let newPosition = new Position(flagLine, lastCharacter); // Assign new position to audio flag
     const newSelection = new Selection(newPosition, newPosition);
     editor.selection = newSelection; // Apply change to editor
 
@@ -214,7 +217,7 @@ export function updateAudioFlagDecorations() {
     
     const flagRange: Range[] = [];
     audioFlagPositions.forEach(line => {
-        flagRange.push(new Range(line - 1, 0, line - 1, 1));
+        flagRange.push(new Range(line, 0, line, 1));
     });
 
     editor.setDecorations(audioFlagDecorationType, flagRange)
