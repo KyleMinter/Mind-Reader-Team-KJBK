@@ -1,4 +1,4 @@
-import { audioFlagDecorationType } from "../extension";
+import { getAudioFlagDecorationType, getAudioFlagStorage } from "../extension";
 import {
 	Position,
 	Selection,
@@ -7,6 +7,7 @@ import {
 	window,
 	workspace,
     Range,
+    Memento,
     TextEditorDecorationType
 } from "vscode";
 import { CommandEntry } from "./commandEntry";
@@ -36,13 +37,13 @@ export function outputErrorMessage(message:string) {
  *  @param editor
  *  @returns editor!.selection.active.line
  */
- export function getLineNumber(editor: TextEditor | undefined): number {
+export function getLineNumber(editor: TextEditor | undefined): number {
     return editor!.selection.active.line;
 }
 
 
 // Set to store the audio flag positions
-export let audioFlagPositions: number[] = [];
+let audioFlagPositions: number[] = [];
 let lineCount: number | undefined = undefined;
 
 // Event listener to update audio flag positions upon lines being added/removed from the active document
@@ -83,6 +84,31 @@ workspace.onDidChangeTextDocument(event => {
 // Event listener to update audio flag decorations on text editor change.
 window.onDidChangeActiveTextEditor(event => {
     if (event) {
+        let audioFlagStorage = getAudioFlagStorage();
+        
+        // This shouldn't happen, but we will check if the storage is undefined so that Typescript doesn't complain.
+        if (audioFlagStorage === undefined)
+        {
+            outputErrorMessage("AudioFlag: Storage Error");
+            return;
+        }
+
+        // Get the audio flag positions for the current document
+        let document = event.document.fileName;
+        let positions = audioFlagStorage.getValue(document);
+
+        if (positions === undefined)
+        {
+            // If there is no array of positions saved for this document, we will create a new one and save it in storage.
+            audioFlagPositions = [];
+            audioFlagStorage.setValue(document, audioFlagPositions);
+        }
+        else
+        {
+            // Set the positions from storage.
+            audioFlagPositions = positions;
+        }
+
         lineCount = event.document.lineCount;
         updateAudioFlagDecorations();
     }
@@ -212,5 +238,26 @@ export function updateAudioFlagDecorations() {
         flagRange.push(new Range(line, 0, line, 1));
     });
 
-    editor.setDecorations(audioFlagDecorationType, flagRange)
+    let decoration = getAudioFlagDecorationType();
+    
+    // This shouldn't happen, but we will check if the decoration type is null so that Typescript doesn't complain.
+    if (decoration === undefined)
+    {
+        outputErrorMessage("AudioFlag: Decoration Icon Error");
+        return;
+    }
+    
+    editor.setDecorations(decoration, flagRange)
+}
+
+export class AudioFlagStorage {
+    constructor(private storage: Memento) { }
+
+    public getValue(key: string) : number[] | undefined {
+        return this.storage.get<number[]>(key);
+    }
+
+    public setValue<T>(key: string, value: number[]) {
+        this.storage.update(key, value);
+    }
 }

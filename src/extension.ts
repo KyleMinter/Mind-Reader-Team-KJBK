@@ -7,7 +7,7 @@ import path = require("path");
 import * as ev3 from "./ev3/src/extension";
 import {toggleLineHighlight, highlightDeactivate} from "./commands/lineHighlighter";
 import { setShouldSpeak } from "./commands/text";
-import { updateAudioFlagDecorations} from "./commands/audioflags";
+import { updateAudioFlagDecorations, AudioFlagStorage } from "./commands/audioflags";
 import {
 	accessCommands,
 	hubCommands,
@@ -32,7 +32,8 @@ const outputChannel = vscode.window.createOutputChannel(product + " Output");
 export const logger = new Logger(outputChannel);
 
 let parser: pl.Parser = new pl.Parser();
-export let audioFlagDecorationType: vscode.TextEditorDecorationType;
+let audioFlagDecorationType: vscode.TextEditorDecorationType | undefined = undefined;
+let audioFlagStorage: AudioFlagStorage | undefined = undefined;
 export const rootDir = path.dirname(__filename);
 export function activate(context: vscode.ExtensionContext) {
 	let config = new Configuration(context);
@@ -92,6 +93,9 @@ export function activate(context: vscode.ExtensionContext) {
 	toggleLineHighlight();
 	setShouldSpeak();
 
+	// Initialize AudioFlagStorage
+	audioFlagStorage = new AudioFlagStorage(context.workspaceState);
+
 	// Create the audio flag decoration.
 	audioFlagDecorationType = vscode.window.createTextEditorDecorationType({
 		gutterIconPath: context.asAbsolutePath("/media/audioflagicon.png"),
@@ -122,3 +126,13 @@ const ttsStatusBar: vscode.StatusBarItem = vscode.window.createStatusBarItem(
 
 export function deactivate() {}
 highlightDeactivate();
+
+
+// Helper functions to get extension context level audio flag stuff.
+export function getAudioFlagDecorationType(): vscode.TextEditorDecorationType | undefined {
+	return audioFlagDecorationType;
+}
+
+export function getAudioFlagStorage(): AudioFlagStorage | undefined {
+	return audioFlagStorage;
+}
