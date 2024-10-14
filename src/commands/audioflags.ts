@@ -168,37 +168,40 @@ export function moveToAudioFlag(): void {
 
     // TODO: fix issue where if a flag set on the last line, the cursor will sometimes be incorrectly moved to it instead of the next one in the document.
 
+    let flagLine;
+    let lastCharacter;
+
     // Check if the cursor is already at or past the line number the last audio flag is on. If it is set the cursor to the first audio flag in the file.
     if (audioFlagPositions[audioFlagPositions.length - 1] - 1 <= currentLine)
     {
-        const line = audioFlagPositions[0];
-        const lastCharacter = editor.document.lineAt(audioFlagPositions[0]).text.length;
-        let newPosition = new Position(line-1, lastCharacter); // Assign new position to audio flag
-
-        const newSelection = new Selection(newPosition, newPosition);
-        editor.selection = newSelection; // Apply change to editor
-
-        editor.revealRange(editor.selection, 1); // Make sure cursor is within range
-        window.showTextDocument(editor.document, editor.viewColumn); // You are able to type without reclicking in document
-        return;
+        flagLine = audioFlagPositions[0];
+        lastCharacter = editor.document.lineAt(audioFlagPositions[0]).text.length;
     }
     else
     {
         audioFlagPositions.forEach(lineNum => {
             if (lineNum-1 > currentLine)
             {
-                const lastCharacter = editor.document.lineAt(lineNum-1).text.length;
-                let newPosition = new Position(lineNum-1, lastCharacter); // Assign new position to audio flag
-    
-                const newSelection = new Selection(newPosition, newPosition);
-                editor.selection = newSelection; // Apply change to editor
-    
-                editor.revealRange(editor.selection, 1); // Make sure cursor is within range
-                window.showTextDocument(editor.document, editor.viewColumn); // You are able to type without reclicking in document
-                return;
+                flagLine = lineNum;
+                lastCharacter = editor.document.lineAt(lineNum-1).text.length;
             }
         });
     }
+
+    // This should never happen, but we check if flagLiune and lastCharacter are undefined so Typescript doesn't complain.
+    if (!flagLine || !lastCharacter)
+    {
+        outputErrorMessage("MoveToAudioFlag: Move Cursor Error");
+        return;
+    }
+
+    // Move the cursor and whatnot.
+    let newPosition = new Position(flagLine - 1, lastCharacter); // Assign new position to audio flag
+    const newSelection = new Selection(newPosition, newPosition);
+    editor.selection = newSelection; // Apply change to editor
+
+    editor.revealRange(editor.selection, 1); // Make sure cursor is within range
+    window.showTextDocument(editor.document, editor.viewColumn); // You are able to type without reclicking in document
 }
 
 // Helper function that updates the audio flag decorations for the active editor
