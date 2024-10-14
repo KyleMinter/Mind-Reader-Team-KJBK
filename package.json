@@ -1105,6 +1105,12 @@
 					"contextualTitle": "Text Data Actions"
 				},
 				{
+					"id": "audioFlagActions",
+					"name": "Audio Flags",
+					"icon": "media/dep.svg",
+					"contextualTitle": "Audio Flag Actions"
+				},
+				{
 					"id": "hubActions",
 					"name": "Hub Actions",
 					"icon": "media/dep.svg",

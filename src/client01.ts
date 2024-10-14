@@ -14,6 +14,7 @@ import {
 	TTSCommand,
 	midicommands,
 	lineHighlightercommands,
+	audioFlagCommands
 } from "./commands";
 
 const allCommands = [
@@ -24,6 +25,7 @@ const allCommands = [
 	TTSCommand,
 	midicommands,
 	lineHighlightercommands,
+	audioFlagCommands
 ].flat(1);
 
 let server: any;

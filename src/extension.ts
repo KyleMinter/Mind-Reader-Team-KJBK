@@ -7,7 +7,7 @@ import path = require("path");
 import * as ev3 from "./ev3/src/extension";
 import {toggleLineHighlight, highlightDeactivate} from "./commands/lineHighlighter";
 import { setShouldSpeak } from "./commands/text";
-import { updateAudioFlagDecorations} from "./commands/text";
+import { updateAudioFlagDecorations} from "./commands/audioflags";
 import {
 	accessCommands,
 	hubCommands,
@@ -17,7 +17,8 @@ import {
 	TTSCommand,
 	midicommands,
 	lineHighlightercommands,
-	voiceCommands
+	voiceCommands,
+	audioFlagCommands
 } from "./commands";
 import { Configuration } from "./util";
 
@@ -52,6 +53,7 @@ export function activate(context: vscode.ExtensionContext) {
 		midicommands,
 		lineHighlightercommands,
 		voiceCommands,
+		audioFlagCommands
 	].flat(1);
 
 	voicetotextCommands.forEach((command) => {
@@ -79,6 +81,9 @@ export function activate(context: vscode.ExtensionContext) {
 		[textCommands, lineHighlightercommands].flat(1)
 	);
 	vscode.window.registerTreeDataProvider("textActions", textProvider);
+
+	let audioFlagProvider = new CommandNodeProvider(audioFlagCommands);
+	vscode.window.registerTreeDataProvider("audioFlagActions", audioFlagProvider);
 
 	let hubProvider = new CommandNodeProvider(hubCommands);
 	vscode.window.registerTreeDataProvider("hubActions", hubProvider);
