@@ -14,8 +14,7 @@ import { CommandEntry } from "./commandEntry";
 export const audioFlagCommands: CommandEntry[] = [
     {
         name: "mind-reader.addAudioFlag",
-        callback: addAudioFlag,
-        undo: undoAddAudioFlag
+        callback: addAudioFlag
     },
     {
         name: "mind-reader.deleteAudioFlag",
@@ -118,10 +117,6 @@ export function addAudioFlag(): void {
     window.showTextDocument(editor.document, editor.viewColumn); // You are able to type without reclicking in document
 }
 
-function undoAddAudioFlag(): void {
-    // honestly not convinced that this callback function is ever invoked, but im keeping it around just in case.
-}
-
 export function deleteAudioFlag(): void {
     const editor: TextEditor | undefined = window.activeTextEditor;
 
@@ -163,9 +158,6 @@ export function moveToAudioFlag(): void {
         outputErrorMessage("MoveToAudioFlag: No Prexisting Audio Flag Present");
         return;
     }
-    
-
-    // TODO: fix issue where if a flag set on the last line, the cursor will sometimes be incorrectly moved to it instead of the next one in the document.
 
     let currentLine = editor.selection.active.line; // Save previous position
     let flagLine;
