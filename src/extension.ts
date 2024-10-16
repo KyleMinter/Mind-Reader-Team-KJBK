@@ -7,7 +7,7 @@ import path = require("path");
 import * as ev3 from "./ev3/src/extension";
 import {toggleLineHighlight, highlightDeactivate} from "./commands/lineHighlighter";
 import { setShouldSpeak } from "./commands/text";
-import { updateAudioFlagDecorations, AudioFlagStorage } from "./commands/audioflags";
+import { initializeAllDocuments, updateAudioFlagDecorations, /*AudioFlagStorage*/ } from "./commands/audioflags";
 import {
 	accessCommands,
 	hubCommands,
@@ -33,7 +33,7 @@ export const logger = new Logger(outputChannel);
 
 let parser: pl.Parser = new pl.Parser();
 let audioFlagDecorationType: vscode.TextEditorDecorationType | undefined = undefined;
-let audioFlagStorage: AudioFlagStorage | undefined = undefined;
+//let audioFlagStorage: AudioFlagStorage | undefined = undefined;
 export const rootDir = path.dirname(__filename);
 export function activate(context: vscode.ExtensionContext) {
 	let config = new Configuration(context);
@@ -93,8 +93,19 @@ export function activate(context: vscode.ExtensionContext) {
 	toggleLineHighlight();
 	setShouldSpeak();
 
+	// This stuff is commented out because we don't need it at this very moment, but probably will upon expanding functionality later.
+	/*
 	// Initialize AudioFlagStorage
 	audioFlagStorage = new AudioFlagStorage(context.workspaceState);
+
+	let keys = audioFlagStorage.getKeys();
+	keys.forEach(key => {
+		let positions = audioFlagStorage?.getValue(key);
+	});
+	*/
+
+	// Initialize all open documents so that we can use audio flags.
+	initializeAllDocuments(vscode.workspace.textDocuments);
 
 	// Create the audio flag decoration.
 	audioFlagDecorationType = vscode.window.createTextEditorDecorationType({
@@ -133,6 +144,7 @@ export function getAudioFlagDecorationType(): vscode.TextEditorDecorationType | 
 	return audioFlagDecorationType;
 }
 
-export function getAudioFlagStorage(): AudioFlagStorage | undefined {
+// This stuff is commented out because we don't need it at this very moment, but probably will upon expanding functionality later.
+/*export function getAudioFlagStorage(): AudioFlagStorage | undefined {
 	return audioFlagStorage;
-}
+}*/

@@ -1,8 +1,9 @@
-import { getAudioFlagDecorationType, getAudioFlagStorage } from "../extension";
+import { getAudioFlagDecorationType, /*getAudioFlagStorage*/ } from "../extension";
 import {
 	Position,
 	Selection,
 	TextEditor,
+    TextDocument,
 	TextLine,
 	window,
 	workspace,
@@ -43,29 +44,32 @@ export function getLineNumber(editor: TextEditor | undefined): number {
 
 
 // Set to store the audio flag positions
-let audioFlagPositions: number[] = [];
-let lineCount: number | undefined = undefined;
+//let audioFlagPositions: number[] = [];
+let openDocuments = new Map<string, Document>();
+//let lineCount: number | undefined = undefined;
 
 // Event listener to update audio flag positions upon lines being added/removed from the active document
 workspace.onDidChangeTextDocument(event => {
-    // Get the new line count after the change was made.
-    let newLineCount = event.document.lineCount;
-
-    // If the previous line count is undefined then extension is probably starting up. In this case we will assign the line count var for the first time.
-    // TODO: this is really jank. should make this more robust at some point.
-    if (!lineCount)
-    {
-        lineCount = newLineCount;
+    // Get open document and check for errors.
+    const document = openDocuments.get(event.document.fileName);
+    if (document === undefined) {
+        outputErrorMessage("AudioFlag: File Initialization Error");
         return;
     }
+
+    const lineCount = document.getLineCount();
+    
+    // Get the new line count after the change was made.
+    const newLineCount = event.document.lineCount;
 
     // If the new line count differs from the previous line count then we will adjust the audio flag positions.
     if (newLineCount !== lineCount)
     {
         // Get the line where the change was made.
-        let start: number = event.contentChanges[0].range.start.line;
+        const start: number = event.contentChanges[0].range.start.line;
 
         // For every audio flag that is positioned on a line after the change, we will update it's position.
+        const audioFlagPositions = document.getAudioFlagPos();
         audioFlagPositions.forEach((lineNum, index) => {
             if (lineNum >= start && lineCount)
             {
@@ -74,7 +78,7 @@ workspace.onDidChangeTextDocument(event => {
         });
 
         // Update the line count.
-        lineCount = newLineCount;
+        document.setLineCount(newLineCount);
 
         // Update the audio flag decorations now that their positions have changed.
         updateAudioFlagDecorations();
@@ -84,35 +88,33 @@ workspace.onDidChangeTextDocument(event => {
 // Event listener to update audio flag decorations on text editor change.
 window.onDidChangeActiveTextEditor(event => {
     if (event) {
-        let audioFlagStorage = getAudioFlagStorage();
-        
-        // This shouldn't happen, but we will check if the storage is undefined so that Typescript doesn't complain.
-        if (audioFlagStorage === undefined)
-        {
-            outputErrorMessage("AudioFlag: Storage Error");
-            return;
-        }
-
-        // Get the audio flag positions for the current document
-        let document = event.document.fileName;
-        let positions = audioFlagStorage.getValue(document);
-
-        if (positions === undefined)
-        {
-            // If there is no array of positions saved for this document, we will create a new one and save it in storage.
-            audioFlagPositions = [];
-            audioFlagStorage.setValue(document, audioFlagPositions);
-        }
-        else
-        {
-            // Set the positions from storage.
-            audioFlagPositions = positions;
-        }
-
-        lineCount = event.document.lineCount;
         updateAudioFlagDecorations();
     }
 });
+
+workspace.onDidSaveTextDocument(event => {
+    if (event)
+    {
+        // This stuff is commented out because we don't need it at this very moment, but probably will upon expanding functionality later.
+        /*
+        // Update the storage
+        const storage = getAudioFlagStorage();
+        const document = event.fileName;
+
+        if (storage!.getKeys().indexOf(document) !== -1)
+        {
+            storage!.setValue(document, audioFlagPositions);
+        }*/
+    }
+});
+
+// Event listener to remove documents from the openDocuments map when they are closed.
+workspace.onDidCloseTextDocument(event => {
+    if (event)
+    {
+        openDocuments.delete(event.fileName);
+    }
+})
 
 
 export function addAudioFlag(): void {
@@ -123,8 +125,16 @@ export function addAudioFlag(): void {
         outputErrorMessage("AddAudioFlag: No Active Editor");
         return;
     }
+
+    // Get the open document and check for errors.
+    const document = openDocuments.get(editor.document.fileName);
+    if (document === undefined) {
+        outputErrorMessage("AudioFlag: File Initialization Error");
+        return;
+    }
     
     // Throw error if there is already an audio flag on the active line.
+    const audioFlagPositions = document.getAudioFlagPos();
     if (audioFlagPositions.indexOf(getLineNumber(editor)) !== -1) {
         outputErrorMessage("AddAudioFlag: Prexisting Audio Flag Present");
         return;
@@ -151,6 +161,15 @@ export function deleteAudioFlag(): void {
         outputErrorMessage("AddAudioFlag: No Active Editor");
         return;
     }
+
+    // Get the open document and check for errors.
+    const document = openDocuments.get(editor.document.fileName);
+    if (document === undefined) {
+        outputErrorMessage("AudioFlag: File Initialization Error");
+        return;
+    }
+
+    const audioFlagPositions = document.getAudioFlagPos();
     
     const index = audioFlagPositions.indexOf(getLineNumber(editor));
 
@@ -179,7 +198,15 @@ export function moveToAudioFlag(): void {
         return;
     }
 
-    // Throw error an audio flag isn't on the active line.
+    // Get the open document and check for errors.
+    const document = openDocuments.get(editor.document.fileName);
+    if (document === undefined) {
+        outputErrorMessage("AudioFlag: File Initialization Error");
+        return;
+    }
+
+    // Throw error if there are no audio flags in the file.
+    const audioFlagPositions = document.getAudioFlagPos();
     if (audioFlagPositions.length === 0) {
         outputErrorMessage("MoveToAudioFlag: No Prexisting Audio Flag Present");
         return;
@@ -232,13 +259,22 @@ export function updateAudioFlagDecorations() {
     if (!editor) {
         return;
     }
+
+    // Get the open document and check for errors.
+    const document = openDocuments.get(editor.document.fileName);
+    if (document === undefined) {
+        outputErrorMessage("AudioFlag: File Initialization Error");
+        return;
+    }
+
+    const audioFlagPositions = document.getAudioFlagPos();
     
     const flagRange: Range[] = [];
     audioFlagPositions.forEach(line => {
         flagRange.push(new Range(line, 0, line, 1));
     });
 
-    let decoration = getAudioFlagDecorationType();
+    const decoration = getAudioFlagDecorationType();
     
     // This shouldn't happen, but we will check if the decoration type is null so that Typescript doesn't complain.
     if (decoration === undefined)
@@ -250,14 +286,59 @@ export function updateAudioFlagDecorations() {
     editor.setDecorations(decoration, flagRange)
 }
 
-export class AudioFlagStorage {
+// This stuff is commented out because we don't need it at this very moment, but probably will upon expanding functionality later.
+/*export class AudioFlagStorage {
     constructor(private storage: Memento) { }
 
     public getValue(key: string) : number[] | undefined {
         return this.storage.get<number[]>(key);
     }
 
-    public setValue<T>(key: string, value: number[]) {
+    public setValue(key: string, value: number[] | undefined) {
         this.storage.update(key, value);
+    }
+
+    public getKeys(): readonly string[] {
+        return this.storage.keys();
+    }
+}*/
+
+export function initializeAllDocuments(docs: readonly TextDocument[]) {
+    // For each text document, we will initialize it in the openDocuments map.
+    docs.forEach(document => {
+        const name = document.fileName;
+        const lines = document.lineCount;
+        openDocuments.set(name, new Document(name, lines));
+    });
+}
+
+/**
+ * A class representing an open document. It contains a file name, line count, and an array consisting of audio flag line positions.
+ */
+class Document {
+    private fileName: string;
+    private lineCount: number;
+    private audioFlagPositions: number[];
+
+    constructor(file: string, lines: number) {
+        this.fileName = file;
+        this.lineCount = lines;
+        this.audioFlagPositions = [];
+    }
+
+    public getFileName(): string {
+        return this.fileName;
+    }
+
+    public getLineCount(): number {
+        return this.lineCount;
+    }
+
+    public setLineCount(lines: number) {
+        this.lineCount = lines;
+    }
+
+    public getAudioFlagPos(): number[] {
+        return this.audioFlagPositions;
     }
 }
