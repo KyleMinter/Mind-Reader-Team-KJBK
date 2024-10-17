@@ -7,6 +7,7 @@ import path = require("path");
 import * as ev3 from "./ev3/src/extension";
 import {toggleLineHighlight, highlightDeactivate} from "./commands/lineHighlighter";
 import { setShouldSpeak } from "./commands/text";
+import { initializeAllDocuments, updateAudioFlagDecorations, /*AudioFlagStorage*/ } from "./commands/audioflags";
 import {
 	accessCommands,
 	hubCommands,
@@ -16,7 +17,8 @@ import {
 	TTSCommand,
 	midicommands,
 	lineHighlightercommands,
-	voiceCommands
+	voiceCommands,
+	audioFlagCommands
 } from "./commands";
 import { Configuration } from "./util";
 
@@ -30,6 +32,8 @@ const outputChannel = vscode.window.createOutputChannel(product + " Output");
 export const logger = new Logger(outputChannel);
 
 let parser: pl.Parser = new pl.Parser();
+let audioFlagDecorationType: vscode.TextEditorDecorationType | undefined = undefined;
+//let audioFlagStorage: AudioFlagStorage | undefined = undefined;
 export const rootDir = path.dirname(__filename);
 export function activate(context: vscode.ExtensionContext) {
 	let config = new Configuration(context);
@@ -50,6 +54,7 @@ export function activate(context: vscode.ExtensionContext) {
 		midicommands,
 		lineHighlightercommands,
 		voiceCommands,
+		audioFlagCommands
 	].flat(1);
 
 	voicetotextCommands.forEach((command) => {
@@ -78,12 +83,38 @@ export function activate(context: vscode.ExtensionContext) {
 	);
 	vscode.window.registerTreeDataProvider("textActions", textProvider);
 
+	let audioFlagProvider = new CommandNodeProvider(audioFlagCommands);
+	vscode.window.registerTreeDataProvider("audioFlagActions", audioFlagProvider);
+
 	let hubProvider = new CommandNodeProvider(hubCommands);
 	vscode.window.registerTreeDataProvider("hubActions", hubProvider);
 
 	ev3.activate(context);
 	toggleLineHighlight();
 	setShouldSpeak();
+
+	// This stuff is commented out because we don't need it at this very moment, but probably will upon expanding functionality later.
+	/*
+	// Initialize AudioFlagStorage
+	audioFlagStorage = new AudioFlagStorage(context.workspaceState);
+
+	let keys = audioFlagStorage.getKeys();
+	keys.forEach(key => {
+		let positions = audioFlagStorage?.getValue(key);
+	});
+	*/
+
+	// Initialize all open documents so that we can use audio flags.
+	initializeAllDocuments(vscode.workspace.textDocuments);
+
+	// Create the audio flag decoration.
+	audioFlagDecorationType = vscode.window.createTextEditorDecorationType({
+		gutterIconPath: context.asAbsolutePath("/media/audioflagicon.png"),
+		gutterIconSize: "contain"
+	});
+
+	// Update the audio flag decorations.
+	updateAudioFlagDecorations();
 
 	vscode.window.showInformationMessage("Mind Reader finished loading!");
 }
@@ -106,3 +137,14 @@ const ttsStatusBar: vscode.StatusBarItem = vscode.window.createStatusBarItem(
 
 export function deactivate() {}
 highlightDeactivate();
+
+
+// Helper functions to get extension context level audio flag stuff.
+export function getAudioFlagDecorationType(): vscode.TextEditorDecorationType | undefined {
+	return audioFlagDecorationType;
+}
+
+// This stuff is commented out because we don't need it at this very moment, but probably will upon expanding functionality later.
+/*export function getAudioFlagStorage(): AudioFlagStorage | undefined {
+	return audioFlagStorage;
+}*/

@@ -11,7 +11,7 @@ import {
 	workspace,
     Range,
     Uri,
-    TabInputText
+    TabInputText,
 } from "vscode";
 import { CommandEntry } from "./commandEntry";
 import { Configuration } from "../util";
@@ -59,7 +59,7 @@ export const textCommands: CommandEntry[] = [
         name: "mind-reader.moveCursorEnd",
         callback: moveCursorEnd,
         undo: undoMoveCursorEnd,
-    },
+    }
 ];
 
 export const TTSCommand: CommandEntry[] = [

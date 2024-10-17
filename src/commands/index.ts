@@ -7,3 +7,4 @@ export { voicetotextCommands } from "./voicetotext";
 export { midicommands } from "./midi";
 export { lineHighlightercommands} from "./lineHighlighter";
 export { voiceCommands } from "./voice";
+export { audioFlagCommands } from "./audioflags";
