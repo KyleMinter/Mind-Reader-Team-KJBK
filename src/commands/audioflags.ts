@@ -88,6 +88,10 @@ workspace.onDidChangeTextDocument(event => {
 // Event listener to update audio flag decorations on text editor change.
 window.onDidChangeActiveTextEditor(event => {
     if (event) {
+        // For each text document, we will initialize it in the openDocuments map.
+        const name = event.document.fileName;
+        const lines = event.document.lineCount;
+        openDocuments.set(name, new Document(name, lines));
         updateAudioFlagDecorations();
     }
 });
