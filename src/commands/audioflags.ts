@@ -90,9 +90,12 @@ window.onDidChangeActiveTextEditor(event => {
     if (event) {
         // For each text document, we will initialize it in the openDocuments map.
         const name = event.document.fileName;
-        const lines = event.document.lineCount;
-        openDocuments.set(name, new Document(name, lines));
-        updateAudioFlagDecorations();
+        const document = openDocuments.get(name);
+        if (document === undefined) {
+            const lines = event.document.lineCount;
+            openDocuments.set(name, new Document(name, lines));
+            updateAudioFlagDecorations();
+        }
     }
 });
 
