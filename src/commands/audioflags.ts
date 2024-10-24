@@ -28,7 +28,7 @@ export const audioFlagCommands: CommandEntry[] = [
 ];
 
 // Map to store audio flags for each text document.
-let openDocuments = new Map<string, Document>();
+const openDocuments = new Map<string, Document>();
 
 /*
     ------------------------------------------------------------------------------------------------------------------------------------
