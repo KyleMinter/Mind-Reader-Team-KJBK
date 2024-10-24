@@ -4,13 +4,10 @@ import {
 	Selection,
 	TextEditor,
     TextDocument,
-	TextLine,
 	window,
 	workspace,
     Range,
     Memento,
-    TextEditorDecorationType,
-    TextEditorEdit,
     WorkspaceEdit
 } from "vscode";
 import { CommandEntry } from "./commandEntry";
@@ -33,87 +30,13 @@ export const audioFlagCommands: CommandEntry[] = [
 // Map to store audio flags for each text document.
 let openDocuments = new Map<string, Document>();
 
-// Event listener to update audio flag positions upon lines being added/removed from the active document
-workspace.onDidChangeTextDocument(event => {
-    // Check if the current document has any audio flags in it. If it doesn't we will exit this function.
-    const document = openDocuments.get(event.document.fileName);
-    if (document === undefined) {
-        return;
-    }
-
-    const lineCount = document.getLineCount();
+/*
+    ------------------------------------------------------------------------------------------------------------------------------------
     
-    // Get the new line count after the change was made.
-    const newLineCount = event.document.lineCount;
+    COMMAND CALLBACK FUNCTIONS
 
-    // If the new line count differs from the previous line count then we will adjust the audio flag positions.
-    if (newLineCount !== lineCount)
-    {
-        // Get the line where the change was made.
-        const start: number = event.contentChanges[0].range.start.line;
-
-        // For every audio flag that is positioned on a line after the change, we will update it's position.
-        const audioFlagPositions = document.getAudioFlagPos();
-        audioFlagPositions.forEach((lineNum, index) => {
-            if (lineNum >= start && lineCount)
-            {
-                audioFlagPositions[index] = lineNum + (newLineCount - lineCount);
-            }
-        });
-
-        // Update the line count.
-        document.setLineCount(newLineCount);
-
-        // Update the audio flag decorations now that their positions have changed.
-        updateAudioFlagDecorations();
-    }
-})
-
-// Event listener to update audio flag decorations on text editor change.
-window.onDidChangeActiveTextEditor(event => {
-    if (event && !event.document.isUntitled && openDocuments.get(event.document.fileName) === undefined)
-    {
-        initializeDocument(event.document);
-    }
-
-    updateAudioFlagDecorations();
-});
-
-// Event listener to save audio flags upon file save.
-workspace.onDidSaveTextDocument(event => {
-    if (event)
-    {
-        const name = event.fileName;
-        const document = openDocuments.get(name);
-        if (document !== undefined)
-        {
-            // Get the storage.
-            const storage = getAudioFlagStorage();
-
-            // If there are no audio flags in this document then there's no point in saving anything, so we will instead remove it from storage (assuming its already there).
-            if (document.getAudioFlagPos().length === 0)
-            {
-                // Delete the document from both storage and the openDocuments map.
-                openDocuments.delete(name);
-                storage!.setValue(name, undefined);
-            }
-            else
-            {
-                // Store the document as normal.
-                storage!.setValue(name, document);
-            }
-        }
-    }
-});
-
-// Event listener to remove documents from the openDocuments map when they are closed.
-workspace.onDidCloseTextDocument(event => {
-    if (event)
-    {
-        openDocuments.delete(event.fileName);
-    }
-})
-
+    ------------------------------------------------------------------------------------------------------------------------------------
+*/
 
 export function addAudioFlag(): void {
     const editor: TextEditor | undefined = window.activeTextEditor;
@@ -257,6 +180,95 @@ export function moveToAudioFlag(): void {
     editor.revealRange(editor.selection, 1); // Make sure cursor is within range
     window.showTextDocument(editor.document, editor.viewColumn); // You are able to type without reclicking in document
 }
+
+/*
+    ------------------------------------------------------------------------------------------------------------------------------------
+    
+    EVENT LISTENER CALLBACK FUNCTIONS
+
+    ------------------------------------------------------------------------------------------------------------------------------------
+*/
+
+// Event listener to update audio flag positions upon lines being added/removed from the active document
+workspace.onDidChangeTextDocument(event => {
+    // Check if the current document has any audio flags in it. If it doesn't we will exit this function.
+    const document = openDocuments.get(event.document.fileName);
+    if (document === undefined) {
+        return;
+    }
+
+    const lineCount = document.getLineCount();
+    
+    // Get the new line count after the change was made.
+    const newLineCount = event.document.lineCount;
+
+    // If the new line count differs from the previous line count then we will adjust the audio flag positions.
+    if (newLineCount !== lineCount)
+    {
+        // Get the line where the change was made.
+        const start: number = event.contentChanges[0].range.start.line;
+
+        // For every audio flag that is positioned on a line after the change, we will update it's position.
+        const audioFlagPositions = document.getAudioFlagPos();
+        audioFlagPositions.forEach((lineNum, index) => {
+            if (lineNum >= start && lineCount)
+            {
+                audioFlagPositions[index] = lineNum + (newLineCount - lineCount);
+            }
+        });
+
+        // Update the line count.
+        document.setLineCount(newLineCount);
+
+        // Update the audio flag decorations now that their positions have changed.
+        updateAudioFlagDecorations();
+    }
+})
+
+// Event listener to update audio flag decorations on text editor change.
+window.onDidChangeActiveTextEditor(event => {
+    if (event && !event.document.isUntitled && openDocuments.get(event.document.fileName) === undefined)
+    {
+        initializeDocument(event.document);
+    }
+
+    updateAudioFlagDecorations();
+});
+
+// Event listener to save audio flags upon file save.
+workspace.onDidSaveTextDocument(event => {
+    if (event)
+    {
+        const name = event.fileName;
+        const document = openDocuments.get(name);
+        if (document !== undefined)
+        {
+            // Get the storage.
+            const storage = getAudioFlagStorage();
+
+            // If there are no audio flags in this document then there's no point in saving anything, so we will instead remove it from storage (assuming its already there).
+            if (document.getAudioFlagPos().length === 0)
+            {
+                // Delete the document from both storage and the openDocuments map.
+                openDocuments.delete(name);
+                storage!.setValue(name, undefined);
+            }
+            else
+            {
+                // Store the document as normal.
+                storage!.setValue(name, document);
+            }
+        }
+    }
+});
+
+// Event listener to remove documents from the openDocuments map when they are closed.
+workspace.onDidCloseTextDocument(event => {
+    if (event)
+    {
+        openDocuments.delete(event.fileName);
+    }
+})
 
 /*
     ------------------------------------------------------------------------------------------------------------------------------------
