@@ -8,7 +8,8 @@ import {
 	workspace,
     Range,
     Memento,
-    WorkspaceEdit
+    WorkspaceEdit,
+    Uri
 } from "vscode";
 import { CommandEntry } from "./commandEntry";
 
@@ -376,7 +377,14 @@ export function initializeDocument(document: TextDocument) {
  * A class representing VS Code's Memento which is used for storing audio flags.
  */
 export class AudioFlagStorage {
-    constructor(private storage: Memento) { }
+    constructor(private storage: Memento) {
+        // Remove any documents from storage that are no longer present in the file system.
+        const keys = this.storage.keys();
+        keys.forEach(async fileName => {
+            try { await workspace.fs.stat((Uri.file(fileName))); }
+            catch { this.storage.update(fileName, undefined); }
+        });
+    }
 
     /**
      * Returns a Document associated with a given file name from VS Code's Memento storage.
