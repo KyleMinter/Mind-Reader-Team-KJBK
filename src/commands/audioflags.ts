@@ -286,7 +286,12 @@ export function updateAudioFlagDecorations(): void {
 
     // Check if the current document has any audio flags.
     const document = openDocuments.get(editor.document.fileName);
-    if (document !== undefined)
+    if (document === undefined)
+    {
+        // If the document has no audio flags, we will set no lines to have the decoration.
+        editor.setDecorations(decoration, []);
+    }
+    else
     {
         // Set the lines with audio flags to have the decoration.
         const audioFlagPositions = document.getAudioFlagPos();
