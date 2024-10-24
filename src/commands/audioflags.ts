@@ -33,15 +33,6 @@ export function outputErrorMessage(message:string) {
     window.showErrorMessage(message);
 }
 
-/** Helper Function
- ** This function returns the line number of the active text editor window
- *  @param editor
- *  @returns editor!.selection.active.line
- */
-export function getLineNumber(editor: TextEditor | undefined): number {
-    return editor!.selection.active.line;
-}
-
 
 // Map to store audio flags for each text document.
 let openDocuments = new Map<string, Document>();
@@ -257,8 +248,28 @@ export function moveToAudioFlag(): void {
     window.showTextDocument(editor.document, editor.viewColumn); // You are able to type without reclicking in document
 }
 
-// Helper function that updates the audio flag decorations for the active editor
-export function updateAudioFlagDecorations() {
+/*
+    ------------------------------------------------------------------------------------------------------------------------------------
+    
+    HELPER FUNCTIONS
+
+    ------------------------------------------------------------------------------------------------------------------------------------
+*/
+
+/** Helper Function
+ ** This function returns the line number of the active text editor window
+ *  @param editor the active TextEditor
+ *  @returns editor!.selection.active.line
+ */
+ export function getLineNumber(editor: TextEditor | undefined): number {
+    return editor!.selection.active.line;
+}
+
+/**
+ * Updates the Audio Flag Decorations for the active TextEditor.
+ * If there are Audio Flags present in the file, a flag icon will be added at the position of each Audio Flag in the gutter section of the TextEditor.
+ */
+export function updateAudioFlagDecorations(): void {
     const editor: TextEditor | undefined = window.activeTextEditor;
 
     if (!editor) {
@@ -294,9 +305,16 @@ export function updateAudioFlagDecorations() {
     }
 }
 
+/**
+ * Initializes a TextDocument with it's stored Audio Flags.
+ * TextDocuments need to be saved to disk in order to be initialized. If there are no Audio Flags stored then this function will do nothing.
+ * @param document the TextDocument to initialize 
+ */
 export function initializeDocument(document: TextDocument) {
+    // Check if the document is saved to disk.
     if (!document.isUntitled)
     {
+        // Attempts to get audio flags from storage and initialize them.
         const name = document.fileName;
         const storage = getAudioFlagStorage();
         const savedDocument = storage!.getValue(name);
@@ -313,24 +331,44 @@ export function initializeDocument(document: TextDocument) {
 export class AudioFlagStorage {
     constructor(private storage: Memento) { }
 
+    /**
+     * Returns a Document associated with a given file name from VS Code's Memento storage.
+     * @param key the file name of a Document
+     * @returns the Document associated with the file name, if no Document is found then undefined is returned.
+     */
     public getValue(key: string) : Document | undefined {
+        // Get the value from VS Code's Memento.
         const value = this.storage.get<string>(key);
+
+        // We need to actually return types since the VS Code API call only returns strings.
         if (value === undefined)
             return undefined;
         else
         {
+            // Parse the string returned from storage and return it as a Document object.
             const data = JSON.parse(value);
             return new Document(data.fileName, data.lineCount, data.audioFlagPositions);
         }
     }
 
+    /**
+     * Stores a Document with an associated file name into VS Code's Memento storage.
+     * @param key the file name of the Document to be stored
+     * @param value the Document to be stored into storage. If this parameter is undefined then the Document will be removed from storage.
+     */
     public setValue(key: string, value: Document | undefined) {
         if (value === undefined)
+            // Removes the document from storage.
             this.storage.update(key, undefined);
         else
+            // Uses JSON to convert the Document object into a string and then stores it into VS Codes Memento storage.
             this.storage.update(key, JSON.stringify(value));
     }
 
+    /**
+     * Returns an array of file names associated with every Document stored in VS Code's Memento storage.
+     * @returns an array of file names
+     */
     public getKeys(): readonly string[] {
         return this.storage.keys();
     }
@@ -350,18 +388,34 @@ class Document {
         this.audioFlagPositions = flags ?? [];
     }
 
+    /**
+     * Gets the file name associated with this Document. The file name is the full URI path.
+     * @returns the URI path associated with this Document
+     */
     public getFileName(): string {
         return this.fileName;
     }
 
+    /**
+     * Gets the line count for this Document.
+     * @returns the line count
+     */
     public getLineCount(): number {
         return this.lineCount;
     }
 
+    /**
+     * Sets the line count for this Document.
+     * @param lines the new line count
+     */
     public setLineCount(lines: number) {
         this.lineCount = lines;
     }
 
+    /**
+     * Gets an array of Audio Flag line positions for this Document. Each number in the array is a line in which an Audio Flag is located.
+     * @returns an array of Audio Flag positions
+     */
     public getAudioFlagPos(): number[] {
         return this.audioFlagPositions;
     }
