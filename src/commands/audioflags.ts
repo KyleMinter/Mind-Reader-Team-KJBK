@@ -30,12 +30,6 @@ export const audioFlagCommands: CommandEntry[] = [
     }
 ];
 
-
-export function outputErrorMessage(message:string) {
-    window.showErrorMessage(message);
-}
-
-
 // Map to store audio flags for each text document.
 let openDocuments = new Map<string, Document>();
 
@@ -126,13 +120,13 @@ export function addAudioFlag(): void {
 
     // Throw error if no editor open
     if (!editor) {
-        outputErrorMessage("AddAudioFlag: No Active Editor");
+        window.showErrorMessage("AddAudioFlag: No Active Editor");
         return;
     }
 
     // Check if the document has been saved yet.
     if (editor.document.isUntitled) {
-        outputErrorMessage("AudioFlag: Document must be saved before using audio flags!");
+        window.showErrorMessage("AudioFlag: Document must be saved before using audio flags!");
         return;
     }
 
@@ -146,7 +140,7 @@ export function addAudioFlag(): void {
     // Throw error if there is already an audio flag on the active line.
     const audioFlagPositions = document.getAudioFlagPos();
     if (audioFlagPositions.indexOf(getLineNumber(editor)) !== -1) {
-        outputErrorMessage("AddAudioFlag: Prexisting Audio Flag Present");
+        window.showErrorMessage("AddAudioFlag: Prexisting Audio Flag Present");
         return;
     }
 
@@ -169,14 +163,14 @@ export function deleteAudioFlag(): void {
 
     // Throw error if no editor open
     if (!editor) {
-        outputErrorMessage("AddAudioFlag: No Active Editor");
+        window.showErrorMessage("AddAudioFlag: No Active Editor");
         return;
     }
 
     // Get the open document and check for errors.
     const document = openDocuments.get(editor.document.fileName);
     if (document === undefined) {
-        outputErrorMessage("AudioFlag: File Initialization Error");
+        window.showErrorMessage("AudioFlag: File Initialization Error");
         return;
     }
 
@@ -186,7 +180,7 @@ export function deleteAudioFlag(): void {
 
     // Throw error an audio flag isn't on the active line.
     if (index === -1) {
-        outputErrorMessage("DeleteAudioFlag: No Prexisting Audio Flag Present");
+        window.showErrorMessage("DeleteAudioFlag: No Prexisting Audio Flag Present");
         return;
     }
     
@@ -206,21 +200,21 @@ export function moveToAudioFlag(): void {
 
     // Throw error if no editor open
     if (!editor) {
-        outputErrorMessage("AddAudioFlag: No Active Editor");
+        window.showErrorMessage("AddAudioFlag: No Active Editor");
         return;
     }
 
     // Get the open document and check for errors.
     const document = openDocuments.get(editor.document.fileName);
     if (document === undefined) {
-        outputErrorMessage("AudioFlag: File Initialization Error");
+        window.showErrorMessage("AudioFlag: File Initialization Error");
         return;
     }
 
     // Throw error if there are no audio flags in the file.
     const audioFlagPositions = document.getAudioFlagPos();
     if (audioFlagPositions.length === 0) {
-        outputErrorMessage("MoveToAudioFlag: No Prexisting Audio Flag Present");
+        window.showErrorMessage("MoveToAudioFlag: No Prexisting Audio Flag Present");
         return;
     }
 
@@ -251,7 +245,7 @@ export function moveToAudioFlag(): void {
     // This should never happen, but we check if flagLiune and lastCharacter are undefined so Typescript doesn't complain.
     if (flagLine === undefined || lastCharacter === undefined)
     {
-        outputErrorMessage("MoveToAudioFlag: Move Cursor Error");
+        window.showErrorMessage("MoveToAudioFlag: Move Cursor Error");
         return;
     }
 
@@ -321,7 +315,7 @@ export function updateAudioFlagDecorations(): void {
     const decoration = getAudioFlagDecorationType();
     if (decoration === undefined)
     {
-        outputErrorMessage("AudioFlag: Decoration Icon Error");
+        window.showErrorMessage("AudioFlag: Decoration Icon Error");
         return;
     }
 
