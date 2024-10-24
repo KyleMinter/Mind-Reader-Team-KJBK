@@ -424,6 +424,21 @@
 				"command": "mind-reader.goToSyntaxErrors",
 				"title": "Go to Syntax Errors",
 				"category": "Mind Reader"
+			},
+			{
+				"command": "mind-reader.addAudioFlag",
+				"title": "Add New Audio Flag",
+				"category": "Audio Flag"
+			},
+			{
+				"command": "mind-reader.removeAudioFlag",
+				"title": "Remove Existing Audio Flag",
+				"category": "Audio Flag"
+			},
+			{
+				"command": "mind-reader.moveToAudioFlag",
+				"title": "Move To Audio Flag",
+				"category": "Audio Flag"
 			}
 		],
 		"keybindings": [
@@ -526,6 +541,21 @@
 				"command": "mind-reader.changeHighlightColor",
 				"key": "Ctrl+Shift+/ Z",
 				"mac": "Ctrl+Shift+[Slash] Z"
+			},
+			{
+				"command": "mind-reader.addAudioFlag",
+				"key": "Ctrl+Shift+8",
+				"mac": "Ctrl+Shift+8"
+			},
+			{
+				"command": "mind-reader.deleteAudioFlag",
+				"key": "Ctrl+Shift+9",
+				"mac": "Ctrl+Shift+9"
+			},
+			{
+				"command": "mind-reader.moveToAudioFlag",
+				"key": "Ctrl+Shift+7",
+				"mac": "Ctrl+Shift+7"
 			}
 		],
 		"menus": {
