@@ -1,4 +1,4 @@
-import { getAudioFlagDecorationType, /*getAudioFlagStorage*/ } from "../extension";
+import { getAudioFlagDecorationType, getAudioFlagStorage } from "../extension";
 import {
 	Position,
 	Selection,
@@ -43,17 +43,14 @@ export function getLineNumber(editor: TextEditor | undefined): number {
 }
 
 
-// Set to store the audio flag positions
-//let audioFlagPositions: number[] = [];
+// Map to store audio flags for each text document.
 let openDocuments = new Map<string, Document>();
-//let lineCount: number | undefined = undefined;
 
 // Event listener to update audio flag positions upon lines being added/removed from the active document
 workspace.onDidChangeTextDocument(event => {
-    // Get open document and check for errors.
+    // Check if the current document has any audio flags in it. If it doesn't we will exit this function.
     const document = openDocuments.get(event.document.fileName);
     if (document === undefined) {
-        outputErrorMessage("AudioFlag: File Initialization Error");
         return;
     }
 
@@ -87,31 +84,26 @@ workspace.onDidChangeTextDocument(event => {
 
 // Event listener to update audio flag decorations on text editor change.
 window.onDidChangeActiveTextEditor(event => {
-    if (event) {
-        // For each text document, we will initialize it in the openDocuments map.
-        const name = event.document.fileName;
-        const document = openDocuments.get(name);
-        if (document === undefined) {
-            const lines = event.document.lineCount;
-            openDocuments.set(name, new Document(name, lines));
-            updateAudioFlagDecorations();
-        }
+    if (event && !event.document.isUntitled && openDocuments.get(event.document.fileName) === undefined)
+    {
+        initializeDocument(event.document);
     }
+
+    updateAudioFlagDecorations();
 });
 
+// Event listener to save audio flags upon file save.
 workspace.onDidSaveTextDocument(event => {
     if (event)
     {
-        // This stuff is commented out because we don't need it at this very moment, but probably will upon expanding functionality later.
-        /*
-        // Update the storage
-        const storage = getAudioFlagStorage();
-        const document = event.fileName;
-
-        if (storage!.getKeys().indexOf(document) !== -1)
+        const name = event.fileName;
+        const document = openDocuments.get(name);
+        if (document !== undefined)
         {
-            storage!.setValue(document, audioFlagPositions);
-        }*/
+            // Update the storage
+            const storage = getAudioFlagStorage();
+            storage!.setValue(name, document);
+        }
     }
 });
 
@@ -133,11 +125,17 @@ export function addAudioFlag(): void {
         return;
     }
 
-    // Get the open document and check for errors.
-    const document = openDocuments.get(editor.document.fileName);
-    if (document === undefined) {
-        outputErrorMessage("AudioFlag: File Initialization Error");
+    // Check if the document has been saved yet.
+    if (editor.document.isUntitled) {
+        outputErrorMessage("AudioFlag: Document must be saved before using audio flags!");
         return;
+    }
+
+    // Get the open document and check for errors.
+    let document = openDocuments.get(editor.document.fileName);
+    if (document === undefined) {
+        document = new Document(editor.document.fileName, editor.document.lineCount);
+        openDocuments.set(editor.document.fileName, document);
     }
     
     // Throw error if there is already an audio flag on the active line.
@@ -267,56 +265,75 @@ export function updateAudioFlagDecorations() {
         return;
     }
 
-    // Get the open document and check for errors.
-    const document = openDocuments.get(editor.document.fileName);
-    if (document === undefined) {
-        outputErrorMessage("AudioFlag: File Initialization Error");
-        return;
-    }
-
-    const audioFlagPositions = document.getAudioFlagPos();
-    
-    const flagRange: Range[] = [];
-    audioFlagPositions.forEach(line => {
-        flagRange.push(new Range(line, 0, line, 1));
-    });
-
-    const decoration = getAudioFlagDecorationType();
-    
     // This shouldn't happen, but we will check if the decoration type is null so that Typescript doesn't complain.
+    const decoration = getAudioFlagDecorationType();
     if (decoration === undefined)
     {
         outputErrorMessage("AudioFlag: Decoration Icon Error");
         return;
     }
+
+    // Check if the current document has any audio flags.
+    const document = openDocuments.get(editor.document.fileName);
+    if (document === undefined)
+    {
+        // If the document has no audio flags, we will set no lines to have the decoration.
+        editor.setDecorations(decoration, []);
+    }
+    else
+    {
+        // Set the lines with audio flags to have the decoration.
+        const audioFlagPositions = document.getAudioFlagPos();
     
-    editor.setDecorations(decoration, flagRange)
+        const flagRange: Range[] = [];
+        audioFlagPositions.forEach(line => {
+            flagRange.push(new Range(line, 0, line, 1));
+        });
+        
+        editor.setDecorations(decoration, flagRange)
+    }
 }
 
-// This stuff is commented out because we don't need it at this very moment, but probably will upon expanding functionality later.
-/*export class AudioFlagStorage {
+export function initializeDocument(document: TextDocument) {
+    if (!document.isUntitled)
+    {
+        const name = document.fileName;
+        const storage = getAudioFlagStorage();
+        const savedDocument = storage!.getValue(name);
+        if (savedDocument !== undefined)
+        {
+            openDocuments.set(name, savedDocument);
+        }
+    }
+}
+
+/**
+ * A class representing VS Code's Memento which is used for storing audio flags.
+ */
+export class AudioFlagStorage {
     constructor(private storage: Memento) { }
 
-    public getValue(key: string) : number[] | undefined {
-        return this.storage.get<number[]>(key);
+    public getValue(key: string) : Document | undefined {
+        const value = this.storage.get<string>(key);
+        if (value === undefined)
+            return undefined;
+        else
+        {
+            const data = JSON.parse(value);
+            return new Document(data.fileName, data.lineCount, data.audioFlagPositions);
+        }
     }
 
-    public setValue(key: string, value: number[] | undefined) {
-        this.storage.update(key, value);
+    public setValue(key: string, value: Document | undefined) {
+        if (value === undefined)
+            this.storage.update(key, undefined);
+        else
+            this.storage.update(key, JSON.stringify(value));
     }
 
     public getKeys(): readonly string[] {
         return this.storage.keys();
     }
-}*/
-
-export function initializeAllDocuments(docs: readonly TextDocument[]) {
-    // For each text document, we will initialize it in the openDocuments map.
-    docs.forEach(document => {
-        const name = document.fileName;
-        const lines = document.lineCount;
-        openDocuments.set(name, new Document(name, lines));
-    });
 }
 
 /**
@@ -327,10 +344,10 @@ class Document {
     private lineCount: number;
     private audioFlagPositions: number[];
 
-    constructor(file: string, lines: number) {
+    constructor(file: string, lines: number, flags?: number[]) {
         this.fileName = file;
         this.lineCount = lines;
-        this.audioFlagPositions = [];
+        this.audioFlagPositions = flags ?? [];
     }
 
     public getFileName(): string {
