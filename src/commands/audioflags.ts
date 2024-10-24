@@ -39,7 +39,7 @@ const openDocuments = new Map<string, Document>();
     ------------------------------------------------------------------------------------------------------------------------------------
 */
 
-export function addAudioFlag(): void {
+async function addAudioFlag(): Promise<void> {
     const editor: TextEditor | undefined = window.activeTextEditor;
 
     // Throw error if no editor open
@@ -76,13 +76,13 @@ export function addAudioFlag(): void {
 
     // Update the audio flag decorations and mark the document as dirty.
     updateAudioFlagDecorations();
-    markActiveDocumentAsDirty();
+    await markActiveDocumentAsDirty();
 
     editor.revealRange(editor.selection, 1); // Make sure cursor is within range
     window.showTextDocument(editor.document, editor.viewColumn); // You are able to type without reclicking in document
 }
 
-export function deleteAudioFlag(): void {
+async function deleteAudioFlag(): Promise<void> {
     const editor: TextEditor | undefined = window.activeTextEditor;
 
     // Throw error if no editor open
@@ -113,13 +113,13 @@ export function deleteAudioFlag(): void {
 
     // Update the audio flag decorations and mark the document as dirty.
     updateAudioFlagDecorations();
-    markActiveDocumentAsDirty();
+    await markActiveDocumentAsDirty();
 
     editor.revealRange(editor.selection, 1); // Make sure cursor is within range
     window.showTextDocument(editor.document, editor.viewColumn); // You are able to type without reclicking in document
 }
 
-export function moveToAudioFlag(): void {
+async function moveToAudioFlag(): Promise<void> {
     const editor: TextEditor | undefined = window.activeTextEditor;
 
     // Throw error if no editor open
@@ -284,7 +284,7 @@ workspace.onDidCloseTextDocument(event => {
  *  @param editor the active TextEditor
  *  @returns editor!.selection.active.line
  */
-export function getLineNumber(editor: TextEditor | undefined): number {
+function getLineNumber(editor: TextEditor | undefined): number {
     return editor!.selection.active.line;
 }
 
