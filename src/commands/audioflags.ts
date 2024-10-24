@@ -91,9 +91,21 @@ workspace.onDidSaveTextDocument(event => {
         const document = openDocuments.get(name);
         if (document !== undefined)
         {
-            // Update the storage
+            // Get the storage.
             const storage = getAudioFlagStorage();
-            storage!.setValue(name, document);
+
+            // If there are no audio flags in this document then there's no point in saving anything, so we will instead remove it from storage (assuming its already there).
+            if (document.getAudioFlagPos().length === 0)
+            {
+                // Delete the document from both storage and the openDocuments map.
+                openDocuments.delete(name);
+                storage!.setValue(name, undefined);
+            }
+            else
+            {
+                // Store the document as normal.
+                storage!.setValue(name, document);
+            }
         }
     }
 });
