@@ -62,7 +62,7 @@ export function addAudioFlag(): void {
     }
     
     // Throw error if there is already an audio flag on the active line.
-    const audioFlagPositions = document.getAudioFlagPos();
+    const audioFlagPositions = document.audioFlagPositions;
     if (audioFlagPositions.indexOf(getLineNumber(editor)) !== -1) {
         window.showErrorMessage("AddAudioFlag: Prexisting Audio Flag Present");
         return;
@@ -98,7 +98,7 @@ export function deleteAudioFlag(): void {
         return;
     }
 
-    const audioFlagPositions = document.getAudioFlagPos();
+    const audioFlagPositions = document.audioFlagPositions;
     
     const index = audioFlagPositions.indexOf(getLineNumber(editor));
 
@@ -136,7 +136,7 @@ export function moveToAudioFlag(): void {
     }
 
     // Throw error if there are no audio flags in the file.
-    const audioFlagPositions = document.getAudioFlagPos();
+    const audioFlagPositions = document.audioFlagPositions;
     if (audioFlagPositions.length === 0) {
         window.showErrorMessage("MoveToAudioFlag: No Prexisting Audio Flag Present");
         return;
@@ -198,7 +198,7 @@ workspace.onDidChangeTextDocument(event => {
         return;
     }
 
-    const lineCount = document.getLineCount();
+    const lineCount = document.lineCount;
     
     // Get the new line count after the change was made.
     const newLineCount = event.document.lineCount;
@@ -210,7 +210,7 @@ workspace.onDidChangeTextDocument(event => {
         const start: number = event.contentChanges[0].range.start.line;
 
         // For every audio flag that is positioned on a line after the change, we will update it's position.
-        const audioFlagPositions = document.getAudioFlagPos();
+        const audioFlagPositions = document.audioFlagPositions;
         audioFlagPositions.forEach((lineNum, index) => {
             if (lineNum >= start && lineCount)
             {
@@ -219,7 +219,7 @@ workspace.onDidChangeTextDocument(event => {
         });
 
         // Update the line count.
-        document.setLineCount(newLineCount);
+        document.lineCount = newLineCount;
 
         // Update the audio flag decorations now that their positions have changed.
         updateAudioFlagDecorations();
@@ -248,7 +248,7 @@ workspace.onDidSaveTextDocument(event => {
             const storage = getAudioFlagStorage();
 
             // If there are no audio flags in this document then there's no point in saving anything, so we will instead remove it from storage (assuming its already there).
-            if (document.getAudioFlagPos().length === 0)
+            if (document.audioFlagPositions.length === 0)
             {
                 // Delete the document from both storage and the openDocuments map.
                 openDocuments.delete(name);
@@ -342,7 +342,7 @@ export function updateAudioFlagDecorations(): void {
     else
     {
         // Set the lines with audio flags to have the decoration.
-        const audioFlagPositions = document.getAudioFlagPos();
+        const audioFlagPositions = document.audioFlagPositions;
     
         const flagRange: Range[] = [];
         audioFlagPositions.forEach(line => {
@@ -433,45 +433,13 @@ export class AudioFlagStorage {
  * A class representing an open document. It contains a file name, line count, and an array consisting of audio flag line positions.
  */
 class Document {
-    private fileName: string;
-    private lineCount: number;
-    private audioFlagPositions: number[];
+    fileName: string;
+    lineCount: number;
+    readonly audioFlagPositions: number[];
 
     constructor(file: string, lines: number, flags?: number[]) {
         this.fileName = file;
         this.lineCount = lines;
         this.audioFlagPositions = flags ?? [];
-    }
-
-    /**
-     * Gets the file name associated with this Document. The file name is the full URI path.
-     * @returns the URI path associated with this Document
-     */
-    public getFileName(): string {
-        return this.fileName;
-    }
-
-    /**
-     * Gets the line count for this Document.
-     * @returns the line count
-     */
-    public getLineCount(): number {
-        return this.lineCount;
-    }
-
-    /**
-     * Sets the line count for this Document.
-     * @param lines the new line count
-     */
-    public setLineCount(lines: number) {
-        this.lineCount = lines;
-    }
-
-    /**
-     * Gets an array of Audio Flag line positions for this Document. Each number in the array is a line in which an Audio Flag is located.
-     * @returns an array of Audio Flag positions
-     */
-    public getAudioFlagPos(): number[] {
-        return this.audioFlagPositions;
     }
 }
