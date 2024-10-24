@@ -273,7 +273,7 @@ export function moveToAudioFlag(): void {
  *  @param editor the active TextEditor
  *  @returns editor!.selection.active.line
  */
- export function getLineNumber(editor: TextEditor | undefined): number {
+export function getLineNumber(editor: TextEditor | undefined): number {
     return editor!.selection.active.line;
 }
 
