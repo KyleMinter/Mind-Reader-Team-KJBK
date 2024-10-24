@@ -131,7 +131,7 @@ export function moveToAudioFlag(): void {
     // Get the open document and check for errors.
     const document = openDocuments.get(editor.document.fileName);
     if (document === undefined) {
-        window.showErrorMessage("AudioFlag: File Initialization Error");
+        window.showErrorMessage("MoveToAudioFlag: No Prexisting Audio Flag Present");
         return;
     }
 
