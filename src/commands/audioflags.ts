@@ -9,7 +9,9 @@ import {
 	workspace,
     Range,
     Memento,
-    TextEditorDecorationType
+    TextEditorDecorationType,
+    TextEditorEdit,
+    WorkspaceEdit
 } from "vscode";
 import { CommandEntry } from "./commandEntry";
 
@@ -154,8 +156,9 @@ export function addAudioFlag(): void {
         return a - b;
     });
 
-    // Update the audio flag decorations.
+    // Update the audio flag decorations and mark the document as dirty.
     updateAudioFlagDecorations();
+    markActiveDocumentAsDirty();
 
     editor.revealRange(editor.selection, 1); // Make sure cursor is within range
     window.showTextDocument(editor.document, editor.viewColumn); // You are able to type without reclicking in document
@@ -190,8 +193,9 @@ export function deleteAudioFlag(): void {
     // Remove the audio flag from the position set.
     audioFlagPositions.splice(index, 1);
 
-    // Update the audio flag decorations.
+    // Update the audio flag decorations and mark the document as dirty.
     updateAudioFlagDecorations();
+    markActiveDocumentAsDirty();
 
     editor.revealRange(editor.selection, 1); // Make sure cursor is within range
     window.showTextDocument(editor.document, editor.viewColumn); // You are able to type without reclicking in document
@@ -275,6 +279,31 @@ export function moveToAudioFlag(): void {
  */
 export function getLineNumber(editor: TextEditor | undefined): number {
     return editor!.selection.active.line;
+}
+
+/**
+ * Marks the currently active TextDocument as dirty.
+ * @returns void Promise
+ */
+async function markActiveDocumentAsDirty(): Promise<void> {
+    const editor: TextEditor | undefined = window.activeTextEditor;
+
+    if (editor)
+    {
+        const lastLine = editor.document.lineCount - 1; // Get last line
+        const lastCharacter = editor.document.lineAt(lastLine).text.length; // Get last character in last line
+        let endPosition: Position = new Position(lastLine, lastCharacter); // Assign new position to end
+        
+        // Inserts a space as the very last character in the file.
+        let edits = new WorkspaceEdit();
+        edits.insert(editor.document.uri, endPosition, " ");
+        await workspace.applyEdit(edits);
+
+        // Removes the previously inserted space.
+        let edits2 = new WorkspaceEdit();
+        edits2.delete(editor.document.uri, new Range(endPosition, new Position(lastLine, lastCharacter + 1)));
+        await workspace.applyEdit(edits2);33
+    }
 }
 
 /**
