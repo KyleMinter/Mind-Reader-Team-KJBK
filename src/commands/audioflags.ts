@@ -27,6 +27,9 @@ export const audioFlagCommands: CommandEntry[] = [
         callback: moveToAudioFlag
     }
 ];
+import player = require('play-sound');
+
+const soundPlayer = player();
 
 // Map to store audio flags for each text document.
 const openDocuments = new Map<string, Document>();
@@ -74,12 +77,17 @@ async function addAudioFlag(): Promise<void> {
         return a - b;
     });
 
+    //play sound when flag is added
+    playSound('C:\Users\Palli\Documents\GitHub\Team-KJBK\media\Flag Sounds\Pluck 1.mp3');
+
     // Update the audio flag decorations and mark the document as dirty.
     updateAudioFlagDecorations();
     await markActiveDocumentAsDirty();
 
     editor.revealRange(editor.selection, 1); // Make sure cursor is within range
     window.showTextDocument(editor.document, editor.viewColumn); // You are able to type without reclicking in document
+
+    
 }
 
 async function deleteAudioFlag(): Promise<void> {
@@ -286,6 +294,21 @@ workspace.onDidCloseTextDocument(event => {
  */
 function getLineNumber(editor: TextEditor | undefined): number {
     return editor!.selection.active.line;
+}
+
+
+//Function to play sound for audio flags
+//Variable should be the string url for the sound
+function playSound(url: string): void {
+    soundPlayer.play(url, function(err: Error){
+        if(err){
+            console.error('Error playing sound: ', err);
+        }
+        else
+        {
+            console.log('Sound played successfully');
+        }
+    })
 }
 
 /**
