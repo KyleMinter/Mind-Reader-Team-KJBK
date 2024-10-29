@@ -362,13 +362,8 @@ async function showAudioFlagQuickPick(): Promise<Tone | undefined> {
             if (qp.selectedItems.length >= 1)
             {
                 resolve(qp.selectedItems[0].label as Tone);
+                qp.dispose();
             }
-            else
-            {
-                resolve(undefined);
-            }
-
-            qp.dispose();
         });
 
         // Show the quick pick prompt.
