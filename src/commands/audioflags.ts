@@ -63,24 +63,24 @@ async function addAudioFlag(): Promise<void> {
     }
     
     // Throw error if there is already an audio flag on the active line.
-    const audioFlagPositions = document.audioFlagPositions;
-    if (audioFlagPositions.indexOf(getLineNumber(editor)) !== -1) {
+    const audioFlags = document.audioFlags;
+    if (audioFlags.findIndex((flag) => flag.lineNum === getLineNumber(editor)) !== -1) {
         window.showErrorMessage("AddAudioFlag: Prexisting Audio Flag Present");
         return;
     }
 
     // Add the audio flag to the position set and sort the set in numerical order.
-    audioFlagPositions.push(getLineNumber(editor));
-    audioFlagPositions.sort(function(a, b) {
-        return a - b;
+    audioFlags.push(new Flag(getLineNumber(editor), 'low'));
+    audioFlags.sort(function(a, b) {
+        return a.lineNum - b.lineNum;
     });
 
     //midi sound playback for adding flag. Use 'low' for low note, 'mid' for medium pitched note, and 'high' for a high pitched note.
-    const flag3 = new Flag(1, 'mid')
-    if(isOn() == true)
-    {
-        playFlagMidi(flag3.note)
-    }
+    // const flag3 = new Flag(1, 'mid')
+    // if(isOn() == true)
+    // {
+    //     playFlagMidi(flag3.note)
+    // }
     
 
     // Update the audio flag decorations and mark the document as dirty.
@@ -109,9 +109,8 @@ async function deleteAudioFlag(): Promise<void> {
         return;
     }
 
-    const audioFlagPositions = document.audioFlagPositions;
-    
-    const index = audioFlagPositions.indexOf(getLineNumber(editor));
+    const audioFlags = document.audioFlags;
+    const index = audioFlags.findIndex((flag) => flag.lineNum === getLineNumber(editor));
 
     // Throw error an audio flag isn't on the active line.
     if (index === -1) {
@@ -120,18 +119,18 @@ async function deleteAudioFlag(): Promise<void> {
     }
     
     // Remove the audio flag from the position set.
-    audioFlagPositions.splice(index, 1);
+    audioFlags.splice(index, 1);
 
     // Update the audio flag decorations and mark the document as dirty.
     updateAudioFlagDecorations();
     await markActiveDocumentAsDirty();
 
     //midi sound playback for deleting a flag. Use 'low' for low note, 'mid' for medium pitched note, and 'high' for a high pitched note.
-    const flag2 = new Flag(2, 'high')
-    if(isOn() == true)
-    {
-        playFlagMidi(flag2.note)
-    }
+    // const flag2 = new Flag(2, 'high')
+    // if(isOn() == true)
+    // {
+    //     playFlagMidi(flag2.note)
+    // }
         
 
     editor.revealRange(editor.selection, 1); // Make sure cursor is within range
@@ -155,8 +154,8 @@ async function moveToAudioFlag(): Promise<void> {
     }
 
     // Throw error if there are no audio flags in the file.
-    const audioFlagPositions = document.audioFlagPositions;
-    if (audioFlagPositions.length === 0) {
+    const audioFlags = document.audioFlags;
+    if (audioFlags.length === 0) {
         window.showErrorMessage("MoveToAudioFlag: No Prexisting Audio Flag Present");
         return;
     }
@@ -166,16 +165,16 @@ async function moveToAudioFlag(): Promise<void> {
     let lastCharacter;
 
     // Check if the cursor is already at or past the line number the last audio flag is on. If it is set the cursor to the first audio flag in the file.
-    if (audioFlagPositions[audioFlagPositions.length - 1] <= currentLine)
+    if (audioFlags[audioFlags.length - 1].lineNum <= currentLine)
     {
-        flagLine = audioFlagPositions[0];
-        lastCharacter = editor.document.lineAt(audioFlagPositions[0]).text.length;
+        flagLine = audioFlags[0].lineNum;
+        lastCharacter = editor.document.lineAt(audioFlags[0].lineNum).text.length;
     }
     else
     {
-        for (let i = 0; i < audioFlagPositions.length; i++)
+        for (let i = 0; i < audioFlags.length; i++)
         {
-            let lineNumber = audioFlagPositions[i];
+            let lineNumber = audioFlags[i].lineNum;
             if (lineNumber > currentLine)
             {
                 flagLine = lineNumber;
@@ -198,11 +197,11 @@ async function moveToAudioFlag(): Promise<void> {
     editor.selection = newSelection; // Apply change to editor
 
     //midi sound playback for deleting a flag. Use 'low' for low note, 'mid' for medium pitched note, and 'high' for a high pitched note.
-    const flag3 = new Flag(3, 'low')
-    if(isOn() == true)
-    {
-        playFlagMidi(flag3.note)
-    }
+    // const flag3 = new Flag(3, 'low')
+    // if(isOn() == true)
+    // {
+    //     playFlagMidi(flag3.note)
+    // }
 
     editor.revealRange(editor.selection, 1); // Make sure cursor is within range
     window.showTextDocument(editor.document, editor.viewColumn); // You are able to type without reclicking in document
@@ -236,11 +235,11 @@ workspace.onDidChangeTextDocument(event => {
         const start: number = event.contentChanges[0].range.start.line;
 
         // For every audio flag that is positioned on a line after the change, we will update it's position.
-        const audioFlagPositions = document.audioFlagPositions;
-        audioFlagPositions.forEach((lineNum, index) => {
-            if (lineNum >= start && lineCount)
+        const audioFlags = document.audioFlags;
+        audioFlags.forEach((flag, index) => {
+            if (flag.lineNum >= start && lineCount)
             {
-                audioFlagPositions[index] = lineNum + (newLineCount - lineCount);
+                flag.lineNum = flag.lineNum + (newLineCount - lineCount);
             }
         });
 
@@ -274,7 +273,7 @@ workspace.onDidSaveTextDocument(event => {
             const storage = getAudioFlagStorage();
 
             // If there are no audio flags in this document then there's no point in saving anything, so we will instead remove it from storage (assuming its already there).
-            if (document.audioFlagPositions.length === 0)
+            if (document.audioFlags.length === 0)
             {
                 // Delete the document from both storage and the openDocuments map.
                 openDocuments.delete(name);
@@ -284,6 +283,8 @@ workspace.onDidSaveTextDocument(event => {
             {
                 // Store the document as normal.
                 storage!.setValue(name, document);
+
+                console.log(document.audioFlags);
             }
         }
     }
@@ -368,11 +369,11 @@ export function updateAudioFlagDecorations(): void {
     else
     {
         // Set the lines with audio flags to have the decoration.
-        const audioFlagPositions = document.audioFlagPositions;
+        const audioFlags = document.audioFlags;
     
         const flagRange: Range[] = [];
-        audioFlagPositions.forEach(line => {
-            flagRange.push(new Range(line, 0, line, 1));
+        audioFlags.forEach(flag => {
+            flagRange.push(new Range(flag.lineNum, 0, flag.lineNum, 1));
         });
         
         editor.setDecorations(decoration, flagRange)
@@ -394,6 +395,7 @@ export function initializeDocument(document: TextDocument) {
         const savedDocument = storage!.getValue(name);
         if (savedDocument !== undefined)
         {
+            console.log(savedDocument.audioFlags);
             openDocuments.set(name, savedDocument);
         }
     }
@@ -428,7 +430,7 @@ export class AudioFlagStorage {
         {
             // Parse the string returned from storage and return it as a Document object.
             const data = JSON.parse(value);
-            return new Document(data.fileName, data.lineCount, data.audioFlagPositions);
+            return new Document(data.fileName, data.lineCount, data.audioFlags);
         }
     }
 
@@ -443,6 +445,7 @@ export class AudioFlagStorage {
             this.storage.update(key, undefined);
         else
             // Uses JSON to convert the Document object into a string and then stores it into VS Codes Memento storage.
+            console.log(JSON.stringify(value));
             this.storage.update(key, JSON.stringify(value));
     }
 
@@ -461,12 +464,12 @@ export class AudioFlagStorage {
 class Document {
     fileName: string;
     lineCount: number;
-    readonly audioFlagPositions: number[];
+    readonly audioFlags: Flag[];
 
-    constructor(file: string, lines: number, flags?: number[]) {
+    constructor(file: string, lines: number, flags?: Flag[]) {
         this.fileName = file;
         this.lineCount = lines;
-        this.audioFlagPositions = flags ?? [];
+        this.audioFlags = flags ?? [];
     }
 }
 
