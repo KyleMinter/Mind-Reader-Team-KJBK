@@ -1,8 +1,9 @@
-import { TextEditorSelectionChangeEvent, window, workspace } from "vscode";
+import { TextEditorSelectionChangeEvent, window, workspace, TextEditor } from "vscode";
 import pl = require("../pylex");
 import { CommandEntry } from "./commandEntry";
 import * as jzz from "jzz";
 import { outputMessage } from "./text";
+import { getAudioFlagToneFromLineNumber } from "./audioflags";
 
 export const midicommands: CommandEntry[] = [
 	{
@@ -26,9 +27,9 @@ export function toggleSoundCues(): boolean {
 
 window.onDidChangeTextEditorSelection(playerContext);
 
-function playMidi(contextString: string) {
+function playMidi(contextString: string, editor: TextEditor) {
 	var output = jzz().openMidiOut();
-	var chordType: string = lineContext(contextString);
+	var chordType: string = lineContext(contextString, editor);
 	output.note(0, chordType, 127, 550);
 }
 
@@ -72,7 +73,7 @@ function playerContext(_event: TextEditorSelectionChangeEvent) {
 		const context: pl.LexNode[] = parser.context(line);
 		// build text
 		const contextString: string = createContextString(context);
-		playMidi(contextString);
+		playMidi(contextString, editor);
 	}
 }
 
@@ -130,7 +131,11 @@ function createContextString(context: pl.LexNode[]): string {
 }
 
 // Function checking for nested for loop
-export function lineContext(contextString: string): string {
+export function lineContext(contextString: string, editor: TextEditor): string {
+	const audioFlagNote = getAudioFlagToneFromLineNumber(editor);
+	if (audioFlagNote)
+		return audioFlagNote;
+	
 	const forIndex = contextString.indexOf("for");
 	const forCount = countOccurrences(contextString, "for");
 	const ifCount = countOccurrences(contextString, "if");
