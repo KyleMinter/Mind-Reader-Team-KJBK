@@ -1327,6 +1327,7 @@
 		"say": "file:./dependencies/say",
 		"serialport": "^11.0.0",
 		"server": "^1",
+		"sound-play": "^1.1.0",
 		"speech-synthesis": "^0.3.2",
 		"split": "^1.0.1",
 		"ssh2": "^1.15.0",
