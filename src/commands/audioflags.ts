@@ -94,8 +94,6 @@ async function addAudioFlag(): Promise<void> {
 
     editor.revealRange(editor.selection, 1); // Make sure cursor is within range
     window.showTextDocument(editor.document, editor.viewColumn); // You are able to type without reclicking in document
-
-    
 }
 
 async function deleteAudioFlag(): Promise<void> {
@@ -340,7 +338,7 @@ async function showAudioFlagQuickPick(): Promise<Tone | undefined> {
             disposables.push(qp.onDidAccept(() => {
                 qp.dispose();
                 
-                // Set the result to the selected item.
+                // Returns the selected item if there is one. If there isn't one, undefined it returned.
                 if (qp.selectedItems.length >= 1)
                 {
                     resolve(qp.selectedItems[0].label as Tone);
@@ -504,7 +502,7 @@ export class AudioFlagStorage {
 }
 
 /**
- * A class representing an open document. It contains a file name, line count, and an array consisting of audio flag line positions.
+ * A class representing an open document. It contains a file name, line count, and an array consisting of audio flags.
  */
 class Document {
     fileName: string;
@@ -518,6 +516,9 @@ class Document {
     }
 }
 
+/**
+ * A class representing an Audio Flag. It contains a line number and a note.
+ */
 class Flag {
     lineNum: number;
     note: Tone;
@@ -528,6 +529,9 @@ class Flag {
     }
 }
 
+/**
+ * A enum representing a Tone/Note to be used for Audio Flags.
+ */
 enum Tone {
     D2 = "D2",
     D4 = "D4",
