@@ -350,8 +350,8 @@ async function showAudioFlagQuickPick(): Promise<Tone | undefined> {
 
             // An event listener for when the quick pick is hidden (i.e. canclled).
             disposables.push(qp.onDidHide(() => {
+                resolve(undefined);
                 qp.dispose();
-                resolve(undefined)
             }));
 
             // An event listener for when the active selection of the quick pick is changed.
@@ -361,8 +361,6 @@ async function showAudioFlagQuickPick(): Promise<Tone | undefined> {
 
             // An event listener for when the active selection of the quick pick is accepted.
             disposables.push(qp.onDidAccept(() => {
-                qp.dispose();
-                
                 // Returns the selected item if there is one. If there isn't one, undefined it returned.
                 if (qp.selectedItems.length >= 1)
                 {
@@ -373,6 +371,7 @@ async function showAudioFlagQuickPick(): Promise<Tone | undefined> {
                     resolve(undefined);
                 }
 
+                qp.dispose();
             }));
 
             // Show the quick pick prompt.
