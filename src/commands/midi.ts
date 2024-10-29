@@ -29,7 +29,13 @@ window.onDidChangeTextEditorSelection(playerContext);
 
 function playMidi(contextString: string, editor: TextEditor) {
 	var output = jzz().openMidiOut();
-	var chordType: string = lineContext(contextString, editor);
+	const audioFlagNote = getAudioFlagToneFromLineNumber(editor);
+	var chordType: string;
+	if (audioFlagNote)
+		chordType = audioFlagNote;
+	else
+		chordType = lineContext(contextString);
+
 	output.note(0, chordType, 127, 550);
 }
 
@@ -123,11 +129,7 @@ function createContextString(context: pl.LexNode[]): string {
 }
 
 // Function checking for nested for loop
-export function lineContext(contextString: string, editor: TextEditor): string {
-	const audioFlagNote = getAudioFlagToneFromLineNumber(editor);
-	if (audioFlagNote)
-		return audioFlagNote;
-	
+export function lineContext(contextString: string): string {
 	const forIndex = contextString.indexOf("for");
 	const forCount = countOccurrences(contextString, "for");
 	const ifCount = countOccurrences(contextString, "if");
