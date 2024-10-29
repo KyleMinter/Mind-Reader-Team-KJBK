@@ -356,7 +356,6 @@ async function showAudioFlagQuickPick(): Promise<Tone | undefined> {
 
             // An event listener for when the active selection of the quick pick is changed.
             disposables.push(qp.onDidChangeActive(selection => {
-                console.log("change actiev");
                 // TODO: play the corresponding tone as a preview.
             }));
 
