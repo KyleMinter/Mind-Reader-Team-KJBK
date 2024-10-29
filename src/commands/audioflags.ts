@@ -301,6 +301,26 @@ function getLineNumber(editor: TextEditor | undefined): number {
     return editor!.selection.active.line;
 }
 
+export function getAudioFlagToneFromLineNumber(editor: TextEditor | undefined): string | undefined {
+    if (!editor)
+    {
+        return undefined;
+    }
+    else
+    {
+        // Get the audio flag for the current line in the active document and return the tone associated with it.
+        let document = openDocuments.get(editor.document.fileName);
+        if (document) {
+            const audioFlags = document.audioFlags;
+            const flag = audioFlags.find((flag) => flag.lineNum === getLineNumber(editor));
+            if (flag)
+                return flag.note as string;
+            else
+                return undefined;
+        }
+    }
+}
+
 /**
  * Shows a quick pick prompt for selecting a specified tone when adding an Audio Flag to a Document.
  * @returns the tone that was selected, or undefined if no selection was made
