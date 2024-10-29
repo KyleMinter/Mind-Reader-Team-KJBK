@@ -9,10 +9,12 @@ import {
     Range,
     Memento,
     WorkspaceEdit,
-    Uri
+    Uri,
+    Disposable
 } from "vscode";
 import { CommandEntry } from "./commandEntry";
 import { isOn, playFlagMidi } from "./midi";
+import { highlightDeactivate } from "./lineHighlighter";
 
 export const audioFlagCommands: CommandEntry[] = [
     {
@@ -69,19 +71,22 @@ async function addAudioFlag(): Promise<void> {
         return;
     }
 
+    // Show the quick pick prompt for selecting the Audio Flag tone.
+    const tone = await showAudioFlagQuickPick();
+
+    // If no selection was made then we will cancel the creation of this audio flag.
+    if (tone === undefined)
+    {
+        window.showInformationMessage("Cancelled Audio Flag Creation");
+        return;
+    }
+
     // Add the audio flag to the position set and sort the set in numerical order.
-    audioFlags.push(new Flag(getLineNumber(editor), 'low'));
+    const flag = new Flag(getLineNumber(editor), tone);
+    audioFlags.push(flag);
     audioFlags.sort(function(a, b) {
         return a.lineNum - b.lineNum;
     });
-
-    //midi sound playback for adding flag. Use 'low' for low note, 'mid' for medium pitched note, and 'high' for a high pitched note.
-    // const flag3 = new Flag(1, 'mid')
-    // if(isOn() == true)
-    // {
-    //     playFlagMidi(flag3.note)
-    // }
-    
 
     // Update the audio flag decorations and mark the document as dirty.
     updateAudioFlagDecorations();
@@ -123,15 +128,7 @@ async function deleteAudioFlag(): Promise<void> {
 
     // Update the audio flag decorations and mark the document as dirty.
     updateAudioFlagDecorations();
-    await markActiveDocumentAsDirty();
-
-    //midi sound playback for deleting a flag. Use 'low' for low note, 'mid' for medium pitched note, and 'high' for a high pitched note.
-    // const flag2 = new Flag(2, 'high')
-    // if(isOn() == true)
-    // {
-    //     playFlagMidi(flag2.note)
-    // }
-        
+    await markActiveDocumentAsDirty();  
 
     editor.revealRange(editor.selection, 1); // Make sure cursor is within range
     window.showTextDocument(editor.document, editor.viewColumn); // You are able to type without reclicking in document
@@ -195,13 +192,6 @@ async function moveToAudioFlag(): Promise<void> {
     let newPosition = new Position(flagLine, lastCharacter); // Assign new position to audio flag
     const newSelection = new Selection(newPosition, newPosition);
     editor.selection = newSelection; // Apply change to editor
-
-    //midi sound playback for deleting a flag. Use 'low' for low note, 'mid' for medium pitched note, and 'high' for a high pitched note.
-    // const flag3 = new Flag(3, 'low')
-    // if(isOn() == true)
-    // {
-    //     playFlagMidi(flag3.note)
-    // }
 
     editor.revealRange(editor.selection, 1); // Make sure cursor is within range
     window.showTextDocument(editor.document, editor.viewColumn); // You are able to type without reclicking in document
@@ -283,8 +273,6 @@ workspace.onDidSaveTextDocument(event => {
             {
                 // Store the document as normal.
                 storage!.setValue(name, document);
-
-                console.log(document.audioFlags);
             }
         }
     }
@@ -313,6 +301,65 @@ workspace.onDidCloseTextDocument(event => {
  */
 function getLineNumber(editor: TextEditor | undefined): number {
     return editor!.selection.active.line;
+}
+
+/**
+ * Shows a quick pick prompt for selecting a specified tone when adding an Audio Flag to a Document.
+ * @returns the tone that was selected, or undefined if no selection was made
+ */
+async function showAudioFlagQuickPick(): Promise<Tone | undefined> {
+    const disposables: Disposable[] = [];
+    try
+    {
+        return await new Promise<Tone | undefined>((resolve) => {
+            // Get a list of tones names from the Tone enum.
+            const tones = Object.keys(Tone);
+            // Convert the list of tones names into QuickPickItems.
+            const qpItems = tones.map(tone => ({label: tone}));
+
+            // Define a quick pick.
+            const qp = window.createQuickPick();
+            qp.items = qpItems;
+            qp.canSelectMany = false;
+            qp.ignoreFocusOut = true;
+            qp.title = "Select Audio Flag Tone";
+
+            // An event listener for when the quick pick is hidden (i.e. canclled).
+            disposables.push(qp.onDidHide(() => {
+                qp.dispose();
+                resolve(undefined)
+            }));
+
+            // An event listener for when the active selection of the quick pick is changed.
+            disposables.push(qp.onDidChangeActive(selection => {
+                console.log("change actiev");
+                // TODO: play the corresponding tone as a preview.
+            }));
+
+            // An event listener for when the active selection of the quick pick is accepted.
+            disposables.push(qp.onDidAccept(() => {
+                qp.dispose();
+                
+                // Set the result to the selected item.
+                if (qp.selectedItems.length >= 1)
+                {
+                    resolve(qp.selectedItems[0].label as Tone);
+                }
+                else
+                {
+                    resolve(undefined);
+                }
+
+            }));
+
+            // Show the quick pick prompt.
+            qp.show();
+        });
+    }
+    finally
+    {
+		disposables.forEach(d => d.dispose());
+	}
 }
 
 /**
@@ -395,7 +442,6 @@ export function initializeDocument(document: TextDocument) {
         const savedDocument = storage!.getValue(name);
         if (savedDocument !== undefined)
         {
-            console.log(savedDocument.audioFlags);
             openDocuments.set(name, savedDocument);
         }
     }
@@ -445,7 +491,6 @@ export class AudioFlagStorage {
             this.storage.update(key, undefined);
         else
             // Uses JSON to convert the Document object into a string and then stores it into VS Codes Memento storage.
-            console.log(JSON.stringify(value));
             this.storage.update(key, JSON.stringify(value));
     }
 
@@ -475,10 +520,16 @@ class Document {
 
 class Flag {
     lineNum: number;
-    note: string;
+    note: Tone;
 
-    constructor(lineNum: number, note: string) {
+    constructor(lineNum: number, note: Tone) {
         this.lineNum = lineNum;
         this.note = note;
     }
+}
+
+enum Tone {
+    D2 = "D2",
+    D4 = "D4",
+    D6 = "D6"
 }
