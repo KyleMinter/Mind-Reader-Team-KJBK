@@ -332,56 +332,48 @@ export function getAudioFlagToneFromLineNumber(editor: TextEditor | undefined): 
  * @returns the tone that was selected, or undefined if no selection was made
  */
 async function showAudioFlagQuickPick(): Promise<Tone | undefined> {
-    const disposables: Disposable[] = [];
-    try
-    {
-        return await new Promise<Tone | undefined>((resolve) => {
-            // Get a list of tones names from the Tone enum.
-            const tones = Object.keys(Tone);
-            // Convert the list of tones names into QuickPickItems.
-            const qpItems = tones.map(tone => ({label: tone}));
+    return await new Promise<Tone | undefined>((resolve) => {
+        // Get a list of tones names from the Tone enum.
+        const tones = Object.keys(Tone);
+        // Convert the list of tones names into QuickPickItems.
+        const qpItems = tones.map(tone => ({label: tone}));
 
-            // Define a quick pick.
-            const qp = window.createQuickPick();
-            qp.items = qpItems;
-            qp.canSelectMany = false;
-            qp.ignoreFocusOut = true;
-            qp.title = "Select Audio Flag Tone";
+        // Define a quick pick.
+        const qp = window.createQuickPick();
+        qp.items = qpItems;
+        qp.canSelectMany = false;
+        qp.ignoreFocusOut = true;
+        qp.title = "Select Audio Flag Tone";
 
-            // An event listener for when the quick pick is hidden (i.e. canclled).
-            disposables.push(qp.onDidHide(() => {
-                resolve(undefined);
-                qp.dispose();
-            }));
-
-            // An event listener for when the active selection of the quick pick is changed.
-            disposables.push(qp.onDidChangeActive(selection => {
-                // TODO: play the corresponding tone as a preview.
-            }));
-
-            // An event listener for when the active selection of the quick pick is accepted.
-            disposables.push(qp.onDidAccept(() => {
-                // Returns the selected item if there is one. If there isn't one, undefined it returned.
-                if (qp.selectedItems.length >= 1)
-                {
-                    resolve(qp.selectedItems[0].label as Tone);
-                }
-                else
-                {
-                    resolve(undefined);
-                }
-
-                qp.dispose();
-            }));
-
-            // Show the quick pick prompt.
-            qp.show();
+        // An event listener for when the quick pick is hidden (i.e. cancelled).
+        qp.onDidHide(() => {
+            resolve(undefined);
+            qp.dispose();
         });
-    }
-    finally
-    {
-		disposables.forEach(d => d.dispose());
-	}
+
+        // An event listener for when the active selection of the quick pick is changed.
+        qp.onDidChangeActive(selection => {
+            // TODO: play the corresponding tone as a preview.
+        });
+
+        // An event listener for when the active selection of the quick pick is accepted.
+        qp.onDidAccept(() => {
+            // Returns the selected item if there is one. If there isn't one, undefined it returned.
+            if (qp.selectedItems.length >= 1)
+            {
+                resolve(qp.selectedItems[0].label as Tone);
+            }
+            else
+            {
+                resolve(undefined);
+            }
+
+            qp.dispose();
+        });
+
+        // Show the quick pick prompt.
+        qp.show();
+    });
 }
 
 /**
