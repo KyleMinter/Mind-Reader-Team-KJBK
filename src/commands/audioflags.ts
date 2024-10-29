@@ -12,6 +12,7 @@ import {
     Uri
 } from "vscode";
 import { CommandEntry } from "./commandEntry";
+import { isOn, playFlagMidi } from "./midi";
 
 export const audioFlagCommands: CommandEntry[] = [
     {
@@ -27,9 +28,6 @@ export const audioFlagCommands: CommandEntry[] = [
         callback: moveToAudioFlag
     }
 ];
-import player = require('play-sound');
-
-const soundPlayer = player();
 
 // Map to store audio flags for each text document.
 const openDocuments = new Map<string, Document>();
@@ -77,8 +75,13 @@ async function addAudioFlag(): Promise<void> {
         return a - b;
     });
 
-    //play sound when flag is added
-    playSound('C:\Users\Palli\Documents\GitHub\Team-KJBK\media\Flag Sounds\Pluck 1.mp3');
+    //midi sound playback for adding flag. Use 'low' for low note, 'mid' for medium pitched note, and 'high' for a high pitched note.
+    let note = 'mid';
+    if(isOn() == true)
+    {
+        playFlagMidi(note)
+    }
+    
 
     // Update the audio flag decorations and mark the document as dirty.
     updateAudioFlagDecorations();
@@ -122,6 +125,14 @@ async function deleteAudioFlag(): Promise<void> {
     // Update the audio flag decorations and mark the document as dirty.
     updateAudioFlagDecorations();
     await markActiveDocumentAsDirty();
+
+    //midi sound playback for deleting a flag. Use 'low' for low note, 'mid' for medium pitched note, and 'high' for a high pitched note.
+    let note = 'high';
+    if(isOn() == true)
+    {
+        playFlagMidi(note)
+    }
+        
 
     editor.revealRange(editor.selection, 1); // Make sure cursor is within range
     window.showTextDocument(editor.document, editor.viewColumn); // You are able to type without reclicking in document
@@ -185,6 +196,13 @@ async function moveToAudioFlag(): Promise<void> {
     let newPosition = new Position(flagLine, lastCharacter); // Assign new position to audio flag
     const newSelection = new Selection(newPosition, newPosition);
     editor.selection = newSelection; // Apply change to editor
+
+    //midi sound playback for deleting a flag. Use 'low' for low note, 'mid' for medium pitched note, and 'high' for a high pitched note.
+    let note = 'low';
+    if(isOn() == true)
+    {
+        playFlagMidi(note)
+    }
 
     editor.revealRange(editor.selection, 1); // Make sure cursor is within range
     window.showTextDocument(editor.document, editor.viewColumn); // You are able to type without reclicking in document
@@ -294,21 +312,6 @@ workspace.onDidCloseTextDocument(event => {
  */
 function getLineNumber(editor: TextEditor | undefined): number {
     return editor!.selection.active.line;
-}
-
-
-//Function to play sound for audio flags
-//Variable should be the string url for the sound
-function playSound(url: string): void {
-    soundPlayer.play(url, function(err: Error){
-        if(err){
-            console.error('Error playing sound: ', err);
-        }
-        else
-        {
-            console.log('Sound played successfully');
-        }
-    })
 }
 
 /**

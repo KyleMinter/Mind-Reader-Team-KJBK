@@ -32,6 +32,23 @@ function playMidi(contextString: string) {
 	output.note(0, chordType, 127, 550);
 }
 
+//use to tell if sound cues are active. mainly used in audioflags.ts
+export function isOn(): boolean {
+	return shouldPlayMIDINote;
+}
+
+//use to play notes when a flag is added. mainly used in audioflags.ts and this file
+export function playFlagMidi(note: string) {
+	var output = jzz().openMidiOut();
+
+	if(note == 'low')
+		output.note(0, 'D2', 127, 550);
+	if(note == 'mid')
+		output.note(0, 'D4', 127, 550);
+	if(note == 'high')
+		output.note(0, 'D6', 127, 550);
+}
+
 function playerContext(_event: TextEditorSelectionChangeEvent) {
 	const editor = window.activeTextEditor;
 
