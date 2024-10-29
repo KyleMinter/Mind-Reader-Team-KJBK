@@ -301,6 +301,12 @@ function getLineNumber(editor: TextEditor | undefined): number {
     return editor!.selection.active.line;
 }
 
+/**
+ * Returns the tone associated with the audio flag on the current line of the active text editor.
+ * If there is no audio flag on the current line undefined will be returned.
+ * @param editor the active TextEditor
+ * @returns the tone of the audio flag or undefined.
+ */
 export function getAudioFlagToneFromLineNumber(editor: TextEditor | undefined): string | undefined {
     if (!editor)
     {
