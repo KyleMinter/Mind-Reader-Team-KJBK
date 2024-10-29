@@ -76,10 +76,10 @@ async function addAudioFlag(): Promise<void> {
     });
 
     //midi sound playback for adding flag. Use 'low' for low note, 'mid' for medium pitched note, and 'high' for a high pitched note.
-    let note = 'mid';
+    const flag3 = new Flag(1, 'mid')
     if(isOn() == true)
     {
-        playFlagMidi(note)
+        playFlagMidi(flag3.note)
     }
     
 
@@ -127,10 +127,10 @@ async function deleteAudioFlag(): Promise<void> {
     await markActiveDocumentAsDirty();
 
     //midi sound playback for deleting a flag. Use 'low' for low note, 'mid' for medium pitched note, and 'high' for a high pitched note.
-    let note = 'high';
+    const flag2 = new Flag(2, 'high')
     if(isOn() == true)
     {
-        playFlagMidi(note)
+        playFlagMidi(flag2.note)
     }
         
 
@@ -198,10 +198,10 @@ async function moveToAudioFlag(): Promise<void> {
     editor.selection = newSelection; // Apply change to editor
 
     //midi sound playback for deleting a flag. Use 'low' for low note, 'mid' for medium pitched note, and 'high' for a high pitched note.
-    let note = 'low';
+    const flag3 = new Flag(3, 'low')
     if(isOn() == true)
     {
-        playFlagMidi(note)
+        playFlagMidi(flag3.note)
     }
 
     editor.revealRange(editor.selection, 1); // Make sure cursor is within range
@@ -467,5 +467,15 @@ class Document {
         this.fileName = file;
         this.lineCount = lines;
         this.audioFlagPositions = flags ?? [];
+    }
+}
+
+class Flag {
+    lineNum: number;
+    note: string;
+
+    constructor(lineNum: number, note: string) {
+        this.lineNum = lineNum;
+        this.note = note;
     }
 }
