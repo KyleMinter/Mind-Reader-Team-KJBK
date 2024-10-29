@@ -142,3 +142,12 @@ export function getAudioFlagDecorationType(): vscode.TextEditorDecorationType | 
 export function getAudioFlagStorage(): AudioFlagStorage | undefined {
 	return audioFlagStorage;
 }
+
+function clearAudioFlagStorage() {
+	if (audioFlagStorage !== undefined)
+	{
+		audioFlagStorage.getKeys().forEach((key) => {
+			audioFlagStorage!.setValue(key, undefined);
+		});
+	}
+}
