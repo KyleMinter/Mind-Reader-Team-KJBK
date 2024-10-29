@@ -13,7 +13,7 @@ import {
     Disposable
 } from "vscode";
 import { CommandEntry } from "./commandEntry";
-import { isOn, playFlagMidi } from "./midi";
+import { playFlagMidi } from "./midi";
 import { highlightDeactivate } from "./lineHighlighter";
 
 export const audioFlagCommands: CommandEntry[] = [
@@ -353,7 +353,11 @@ async function showAudioFlagQuickPick(): Promise<Tone | undefined> {
 
         // An event listener for when the active selection of the quick pick is changed.
         qp.onDidChangeActive(selection => {
-            // TODO: play the corresponding tone as a preview.
+            // Plays the note of the current selection as a preview.
+            if (selection.length >= 1)
+            {
+                playFlagMidi(selection[0].label);
+            }
         });
 
         // An event listener for when the active selection of the quick pick is accepted.
