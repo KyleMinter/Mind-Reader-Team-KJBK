@@ -1,8 +1,9 @@
-import { TextEditorSelectionChangeEvent, window, workspace } from "vscode";
+import { TextEditorSelectionChangeEvent, window, workspace, TextEditor } from "vscode";
 import pl = require("../pylex");
 import { CommandEntry } from "./commandEntry";
 import * as jzz from "jzz";
 import { outputMessage } from "./text";
+import { getAudioFlagToneFromLineNumber } from "./audioflags";
 
 export const midicommands: CommandEntry[] = [
 	{
@@ -26,10 +27,25 @@ export function toggleSoundCues(): boolean {
 
 window.onDidChangeTextEditorSelection(playerContext);
 
-function playMidi(contextString: string) {
+function playMidi(contextString: string, editor: TextEditor) {
 	var output = jzz().openMidiOut();
-	var chordType: string = lineContext(contextString);
+	const audioFlagNote = getAudioFlagToneFromLineNumber(editor);
+	var chordType: string;
+	if (audioFlagNote)
+		chordType = audioFlagNote;
+	else
+		chordType = lineContext(contextString);
+
 	output.note(0, chordType, 127, 550);
+}
+
+//use to play notes when a flag is added. mainly used in audioflags.ts and this file
+export function playFlagMidi(note: string) {
+	if (shouldPlayMIDINote)
+	{
+		var output = jzz().openMidiOut();
+		output.note(0, note, 127, 550);
+	}
 }
 
 function playerContext(_event: TextEditorSelectionChangeEvent) {
@@ -55,7 +71,7 @@ function playerContext(_event: TextEditorSelectionChangeEvent) {
 		const context: pl.LexNode[] = parser.context(line);
 		// build text
 		const contextString: string = createContextString(context);
-		playMidi(contextString);
+		playMidi(contextString, editor);
 	}
 }
 

@@ -9,9 +9,12 @@ import {
     Range,
     Memento,
     WorkspaceEdit,
-    Uri
+    Uri,
+    Disposable
 } from "vscode";
 import { CommandEntry } from "./commandEntry";
+import { playFlagMidi } from "./midi";
+import { highlightDeactivate } from "./lineHighlighter";
 
 export const audioFlagCommands: CommandEntry[] = [
     {
@@ -62,16 +65,27 @@ async function addAudioFlag(): Promise<void> {
     }
     
     // Throw error if there is already an audio flag on the active line.
-    const audioFlagPositions = document.audioFlagPositions;
-    if (audioFlagPositions.indexOf(getLineNumber(editor)) !== -1) {
+    const audioFlags = document.audioFlags;
+    if (audioFlags.findIndex((flag) => flag.lineNum === getLineNumber(editor)) !== -1) {
         window.showErrorMessage("AddAudioFlag: Prexisting Audio Flag Present");
         return;
     }
 
+    // Show the quick pick prompt for selecting the Audio Flag tone.
+    const tone = await showAudioFlagQuickPick();
+
+    // If no selection was made then we will cancel the creation of this audio flag.
+    if (tone === undefined)
+    {
+        window.showInformationMessage("Cancelled Audio Flag Creation");
+        return;
+    }
+
     // Add the audio flag to the position set and sort the set in numerical order.
-    audioFlagPositions.push(getLineNumber(editor));
-    audioFlagPositions.sort(function(a, b) {
-        return a - b;
+    const flag = new Flag(getLineNumber(editor), tone);
+    audioFlags.push(flag);
+    audioFlags.sort(function(a, b) {
+        return a.lineNum - b.lineNum;
     });
 
     // Update the audio flag decorations and mark the document as dirty.
@@ -98,9 +112,8 @@ async function deleteAudioFlag(): Promise<void> {
         return;
     }
 
-    const audioFlagPositions = document.audioFlagPositions;
-    
-    const index = audioFlagPositions.indexOf(getLineNumber(editor));
+    const audioFlags = document.audioFlags;
+    const index = audioFlags.findIndex((flag) => flag.lineNum === getLineNumber(editor));
 
     // Throw error an audio flag isn't on the active line.
     if (index === -1) {
@@ -109,11 +122,11 @@ async function deleteAudioFlag(): Promise<void> {
     }
     
     // Remove the audio flag from the position set.
-    audioFlagPositions.splice(index, 1);
+    audioFlags.splice(index, 1);
 
     // Update the audio flag decorations and mark the document as dirty.
     updateAudioFlagDecorations();
-    await markActiveDocumentAsDirty();
+    await markActiveDocumentAsDirty();  
 
     editor.revealRange(editor.selection, 1); // Make sure cursor is within range
     window.showTextDocument(editor.document, editor.viewColumn); // You are able to type without reclicking in document
@@ -136,8 +149,8 @@ async function moveToAudioFlag(): Promise<void> {
     }
 
     // Throw error if there are no audio flags in the file.
-    const audioFlagPositions = document.audioFlagPositions;
-    if (audioFlagPositions.length === 0) {
+    const audioFlags = document.audioFlags;
+    if (audioFlags.length === 0) {
         window.showErrorMessage("MoveToAudioFlag: No Prexisting Audio Flag Present");
         return;
     }
@@ -147,16 +160,16 @@ async function moveToAudioFlag(): Promise<void> {
     let lastCharacter;
 
     // Check if the cursor is already at or past the line number the last audio flag is on. If it is set the cursor to the first audio flag in the file.
-    if (audioFlagPositions[audioFlagPositions.length - 1] <= currentLine)
+    if (audioFlags[audioFlags.length - 1].lineNum <= currentLine)
     {
-        flagLine = audioFlagPositions[0];
-        lastCharacter = editor.document.lineAt(audioFlagPositions[0]).text.length;
+        flagLine = audioFlags[0].lineNum;
+        lastCharacter = editor.document.lineAt(audioFlags[0].lineNum).text.length;
     }
     else
     {
-        for (let i = 0; i < audioFlagPositions.length; i++)
+        for (let i = 0; i < audioFlags.length; i++)
         {
-            let lineNumber = audioFlagPositions[i];
+            let lineNumber = audioFlags[i].lineNum;
             if (lineNumber > currentLine)
             {
                 flagLine = lineNumber;
@@ -210,11 +223,11 @@ workspace.onDidChangeTextDocument(event => {
         const start: number = event.contentChanges[0].range.start.line;
 
         // For every audio flag that is positioned on a line after the change, we will update it's position.
-        const audioFlagPositions = document.audioFlagPositions;
-        audioFlagPositions.forEach((lineNum, index) => {
-            if (lineNum >= start && lineCount)
+        const audioFlags = document.audioFlags;
+        audioFlags.forEach((flag, index) => {
+            if (flag.lineNum >= start && lineCount)
             {
-                audioFlagPositions[index] = lineNum + (newLineCount - lineCount);
+                flag.lineNum = flag.lineNum + (newLineCount - lineCount);
             }
         });
 
@@ -248,7 +261,7 @@ workspace.onDidSaveTextDocument(event => {
             const storage = getAudioFlagStorage();
 
             // If there are no audio flags in this document then there's no point in saving anything, so we will instead remove it from storage (assuming its already there).
-            if (document.audioFlagPositions.length === 0)
+            if (document.audioFlags.length === 0)
             {
                 // Delete the document from both storage and the openDocuments map.
                 openDocuments.delete(name);
@@ -286,6 +299,80 @@ workspace.onDidCloseTextDocument(event => {
  */
 function getLineNumber(editor: TextEditor | undefined): number {
     return editor!.selection.active.line;
+}
+
+/**
+ * Returns the tone associated with the audio flag on the current line of the active text editor.
+ * If there is no audio flag on the current line undefined will be returned.
+ * @param editor the active TextEditor
+ * @returns the tone of the audio flag or undefined.
+ */
+export function getAudioFlagToneFromLineNumber(editor: TextEditor | undefined): string | undefined {
+    if (!editor)
+    {
+        return undefined;
+    }
+    else
+    {
+        // Get the audio flag for the current line in the active document and return the tone associated with it.
+        let document = openDocuments.get(editor.document.fileName);
+        if (document) {
+            const audioFlags = document.audioFlags;
+            const flag = audioFlags.find((flag) => flag.lineNum === getLineNumber(editor));
+            if (flag)
+                return flag.note as string;
+            else
+                return undefined;
+        }
+    }
+}
+
+/**
+ * Shows a quick pick prompt for selecting a specified tone when adding an Audio Flag to a Document.
+ * @returns the tone that was selected, or undefined if no selection was made
+ */
+async function showAudioFlagQuickPick(): Promise<Tone | undefined> {
+    return await new Promise<Tone | undefined>((resolve) => {
+        // Get a list of tones names from the Tone enum.
+        const tones = Object.keys(Tone);
+        // Convert the list of tones names into QuickPickItems.
+        const qpItems = tones.map(tone => ({label: tone}));
+
+        // Define a quick pick.
+        const qp = window.createQuickPick();
+        qp.items = qpItems;
+        qp.canSelectMany = false;
+        qp.ignoreFocusOut = true;
+        qp.title = "Select Audio Flag Tone";
+
+        // An event listener for when the quick pick is hidden (i.e. cancelled).
+        qp.onDidHide(() => {
+            resolve(undefined);
+            qp.dispose();
+        });
+
+        // An event listener for when the active selection of the quick pick is changed.
+        qp.onDidChangeActive(selection => {
+            // Plays the note of the current selection as a preview.
+            if (selection.length >= 1)
+            {
+                playFlagMidi(selection[0].label);
+            }
+        });
+
+        // An event listener for when the active selection of the quick pick is accepted.
+        qp.onDidAccept(() => {
+            // Returns the selected item if there is one. If there isn't one, undefined it returned.
+            if (qp.selectedItems.length >= 1)
+            {
+                resolve(qp.selectedItems[0].label as Tone);
+                qp.dispose();
+            }
+        });
+
+        // Show the quick pick prompt.
+        qp.show();
+    });
 }
 
 /**
@@ -342,11 +429,11 @@ export function updateAudioFlagDecorations(): void {
     else
     {
         // Set the lines with audio flags to have the decoration.
-        const audioFlagPositions = document.audioFlagPositions;
+        const audioFlags = document.audioFlags;
     
         const flagRange: Range[] = [];
-        audioFlagPositions.forEach(line => {
-            flagRange.push(new Range(line, 0, line, 1));
+        audioFlags.forEach(flag => {
+            flagRange.push(new Range(flag.lineNum, 0, flag.lineNum, 1));
         });
         
         editor.setDecorations(decoration, flagRange)
@@ -402,7 +489,7 @@ export class AudioFlagStorage {
         {
             // Parse the string returned from storage and return it as a Document object.
             const data = JSON.parse(value);
-            return new Document(data.fileName, data.lineCount, data.audioFlagPositions);
+            return new Document(data.fileName, data.lineCount, data.audioFlags);
         }
     }
 
@@ -430,16 +517,38 @@ export class AudioFlagStorage {
 }
 
 /**
- * A class representing an open document. It contains a file name, line count, and an array consisting of audio flag line positions.
+ * A class representing an open document. It contains a file name, line count, and an array consisting of audio flags.
  */
 class Document {
     fileName: string;
     lineCount: number;
-    readonly audioFlagPositions: number[];
+    readonly audioFlags: Flag[];
 
-    constructor(file: string, lines: number, flags?: number[]) {
+    constructor(file: string, lines: number, flags?: Flag[]) {
         this.fileName = file;
         this.lineCount = lines;
-        this.audioFlagPositions = flags ?? [];
+        this.audioFlags = flags ?? [];
     }
+}
+
+/**
+ * A class representing an Audio Flag. It contains a line number and a note.
+ */
+class Flag {
+    lineNum: number;
+    note: Tone;
+
+    constructor(lineNum: number, note: Tone) {
+        this.lineNum = lineNum;
+        this.note = note;
+    }
+}
+
+/**
+ * A enum representing a Tone/Note to be used for Audio Flags.
+ */
+enum Tone {
+    D2 = "D2",
+    D4 = "D4",
+    D6 = "D6"
 }
