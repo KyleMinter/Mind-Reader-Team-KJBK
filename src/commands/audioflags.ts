@@ -108,7 +108,7 @@ async function deleteAudioFlag(): Promise<void> {
     // Get the open document and check for errors.
     const document = openDocuments.get(editor.document.fileName);
     if (document === undefined) {
-        window.showErrorMessage("AudioFlag: File Initialization Error");
+        window.showErrorMessage("DeleteAudioFlag: No Prexisting Audio Flag Present");
         return;
     }
 
