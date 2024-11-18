@@ -10,7 +10,7 @@ import {
     Memento,
     WorkspaceEdit,
     Uri,
-    Disposable
+    QuickPickItem
 } from "vscode";
 import { CommandEntry } from "./commandEntry";
 import { playFlagMidi } from "./midi";
@@ -72,7 +72,7 @@ async function addAudioFlag(): Promise<void> {
     }
 
     // Show the quick pick prompt for selecting the Audio Flag tone.
-    const tone = await showAudioFlagQuickPick();
+    const tone = await showAudioFlagQuickPick(audioFlags);
 
     // If no selection was made then we will cancel the creation of this audio flag.
     if (tone === undefined)
@@ -331,12 +331,15 @@ export function getAudioFlagToneFromLineNumber(editor: TextEditor | undefined): 
  * Shows a quick pick prompt for selecting a specified tone when adding an Audio Flag to a Document.
  * @returns the tone that was selected, or undefined if no selection was made
  */
-async function showAudioFlagQuickPick(): Promise<Tone | undefined> {
+async function showAudioFlagQuickPick(audioFlags: Flag[]): Promise<Tone | undefined> {
     return await new Promise<Tone | undefined>((resolve) => {
         // Get a list of tones names from the Tone enum.
         const tones = Object.keys(Tone);
         // Convert the list of tones names into QuickPickItems.
-        const qpItems = tones.map(tone => ({label: tone}));
+        const qpItems = tones.filter(function(tone) {
+            // Filters the list of tones to only include ones not currently used in this document.
+            return audioFlags.findIndex((flag) => flag.note === tone) === -1
+        }).map(tone => ({label: tone})); // Maps the list of tones to QuickPickItems.
 
         // Define a quick pick.
         const qp = window.createQuickPick();
@@ -366,7 +369,7 @@ async function showAudioFlagQuickPick(): Promise<Tone | undefined> {
             if (qp.selectedItems.length >= 1)
             {
                 resolve(qp.selectedItems[0].label as Tone);
-                qp.dispose();
+                qp.dispose();  
             }
         });
 
