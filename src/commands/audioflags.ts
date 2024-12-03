@@ -628,7 +628,17 @@ class Flag {
  * A enum representing a Tone/Note to be used for Audio Flags.
  */
 enum Tone {
-    D2 = "D2",
-    D4 = "D4",
-    D6 = "D6"
+    Piano1 = "D2",
+    Piano2 = "D4",
+    Piano3 = "D6",
+    Violin1 = "E2",
+    Violin2 = "E4",
+    Violin3 = "E6",
+    Guitar1 = "F2",
+    Guitar2 = "F4",
+    Guitar3 = "F6",
+    Marimba1 = "G2",
+    Marimba2 = "G4",
+    Marimba3  = "G6"
+
 }
