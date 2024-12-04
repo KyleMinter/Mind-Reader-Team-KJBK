@@ -491,8 +491,28 @@ export class AudioFlagStorage {
         else
         {
             // Parse the string returned from storage and return it as a Document object.
-            const data = JSON.parse(value);
-            return new Document(data.fileName, data.lineCount, data.audioFlags);
+            try
+            {
+                const data = JSON.parse(value);
+
+                // Validate parsed data
+                if (typeof data.fileName !== 'string' ||
+                    typeof data.lineCount !== 'number' ||
+                    !Array.isArray(data.audioFlags) ||
+                    !(data.audioFlags as unknown[]).every(flag => typeof flag === 'string'))
+                    {
+                        throw new Error("Invalid data format");
+                    }
+
+                return new Document(data.fileName, data.lineCount, data.audioFlags);
+            } catch (error)
+            {
+                //console.error(`Failed to parse or validate stored data for key "${key}`, error);
+                // Remove invalid data
+                this.storage.update(key,undefined);
+                return undefined;
+            }
+            
         }
     }
 
