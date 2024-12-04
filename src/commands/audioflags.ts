@@ -246,6 +246,12 @@ async function searchAudioFlags(): Promise<void> {
         if (value == "")
             return;
 
+        const visibleRange = editor.visibleRanges[0];
+        const cursorPos = editor.selection.active;
+        let nearestMatch = null;
+        let minDistance = Infinity;
+        let visibleMatch = false;
+
         for (const line of audioFlagPositions)
         {
             let lineText = textDoc.lineAt(line).text;   // Gets the text on the current line
@@ -256,11 +262,32 @@ async function searchAudioFlags(): Promise<void> {
             {
                 const range = new Range(line, match, line, match + value.length);
                 highlights.push(range);
+
+                // Checks to see if any highlights are visible; if not, it gets the nearest highlight's range
+                if (visibleRange.contains(range))
+                {
+                    visibleMatch = true;
+                }
+                else if (!nearestMatch)
+                {
+                    const distance = Math.abs(cursorPos.line - line)
+                    if (distance < minDistance)
+                    {
+                        minDistance = distance;
+                        nearestMatch = range;
+                    }
+                }
                 match = lineText.indexOf(value, match + value.length);
             }
         }
-
         editor.setDecorations(highlightDecoration, highlights)
+
+        // Jumps to the closest highlighted text if there is none on screen
+        if (!visibleMatch && nearestMatch)
+            {
+            editor.revealRange(nearestMatch, 1);
+            editor.selection = new Selection(nearestMatch.start, nearestMatch.start);
+        }
     })
 
     // Clears highlights when the search bar is closed
