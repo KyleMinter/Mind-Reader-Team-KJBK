@@ -28,6 +28,10 @@ export const audioFlagCommands: CommandEntry[] = [
     {
         name: "mind-reader.moveToAudioFlag",
         callback: moveToAudioFlag
+    },
+    {
+        name: "mind-reader.searchAudioFlags",
+        callback: searchAudioFlags
     }
 ];
 
@@ -193,6 +197,114 @@ async function moveToAudioFlag(): Promise<void> {
 
     editor.revealRange(editor.selection, 1); // Make sure cursor is within range
     window.showTextDocument(editor.document, editor.viewColumn); // You are able to type without reclicking in document
+}
+
+async function searchAudioFlags(): Promise<void> {
+    const editor: TextEditor | undefined = window.activeTextEditor;
+
+    // Throw an error if the editor is not opened
+    if (!editor) {
+        window.showErrorMessage("SearchAudioFlags: No Active Editor");
+        return;
+    }
+
+    // Check the opened file for errors
+    const document = openDocuments.get(editor.document.fileName);
+    if (document === undefined) {
+        window.showErrorMessage("AudioFlag: File Initialization Error");
+        return;
+    }
+
+    // Get the array of audio flags and throw an error if there are not existing flags
+    const audioFlags = document.audioFlags;
+    if (audioFlags.length === 0) {
+        window.showErrorMessage("SearchAudioFlags: No Prexisting Audio Flag Present");
+        return;
+    }
+
+    // Get the positions of the audio flags
+    const audioFlagPositions = audioFlags.map(flag => flag.lineNum)
+
+    // Create the input box for the search bar and 
+    const searchBar = window.createInputBox();
+    searchBar.placeholder = "Search audio flags...";
+    const highlights: Range[] = [];
+
+    // Creates the highlight decoration for matched text
+    const highlightDecoration = window.createTextEditorDecorationType({
+        backgroundColor: 'rgba(255,255,0,0.3)',
+    })
+
+    // If the search value changes, check to see if the value matches any text within flagged lines
+    const textDoc = editor.document;
+    searchBar.onDidChangeValue((value) => {
+        // Clear previous highlights to prevent incorrect highlights or decoration stacking
+        editor.setDecorations(highlightDecoration, []);
+        highlights.length = 0;
+
+        // If the value is empty, do not search
+        if (value == "")
+            return;
+
+        const visibleRange = editor.visibleRanges[0];
+        const cursorPos = editor.selection.active;
+        let nearestMatch = null;
+        let minDistance = Infinity;
+        let visibleMatch = false;
+
+        // Converts the search value to a lowercase version so it is case insensitive
+        let search = value.toLowerCase();
+
+        for (const line of audioFlagPositions)
+        {
+            let lineText = textDoc.lineAt(line).text;       // Gets the text on the current line
+            const lowerLineText = lineText.toLowerCase();   // Creates a lowercase version of the lineText for matching
+            let match = lowerLineText.indexOf(search);
+
+            // Fetches all the matches within the given line and adds them to the highlights array
+            while (match !== -1)
+            {
+                const range = new Range(line, match, line, match + search.length);
+                highlights.push(range);
+
+                // Checks to see if any highlights are visible
+                if (visibleRange.contains(range))
+                {
+                    visibleMatch = true;
+                }
+                
+                // If there are no visible matches, get the nearest match's range
+                if (!visibleMatch)
+                {
+                    const distance = Math.abs(cursorPos.line - line)
+                    if (distance < minDistance)
+                    {
+                        minDistance = distance;
+                        nearestMatch = range;
+                    }
+                }
+                // Move to next possible match
+                match = lowerLineText.indexOf(search, match + search.length);
+            }
+            if (visibleMatch) break;
+        }
+        editor.setDecorations(highlightDecoration, highlights)
+
+        // Jumps to the closest highlighted text if there is none on screen
+        if (!visibleMatch && nearestMatch)
+            {
+            editor.revealRange(nearestMatch, 1);
+            editor.selection = new Selection(nearestMatch.start, nearestMatch.start);
+        }
+    })
+
+    // Clears highlights when the search bar is closed
+    searchBar.onDidHide(() => {
+        highlights.length = 0;
+        editor.setDecorations(highlightDecoration, []);
+    })
+
+    searchBar.show()
 }
 
 /*
