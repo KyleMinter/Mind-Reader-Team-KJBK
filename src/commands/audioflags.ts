@@ -252,23 +252,29 @@ async function searchAudioFlags(): Promise<void> {
         let minDistance = Infinity;
         let visibleMatch = false;
 
+        // Converts the search value to a lowercase version so it is case insensitive
+        let search = value.toLowerCase();
+
         for (const line of audioFlagPositions)
         {
-            let lineText = textDoc.lineAt(line).text;   // Gets the text on the current line
-            let match = lineText.indexOf(value);        // Checks if the line's text matches the search value
+            let lineText = textDoc.lineAt(line).text;       // Gets the text on the current line
+            const lowerLineText = lineText.toLowerCase();   // Creates a lowercase version of the lineText for matching
+            let match = lowerLineText.indexOf(search);
 
             // Fetches all the matches within the given line and adds them to the highlights array
             while (match !== -1)
             {
-                const range = new Range(line, match, line, match + value.length);
+                const range = new Range(line, match, line, match + search.length);
                 highlights.push(range);
 
-                // Checks to see if any highlights are visible; if not, it gets the nearest highlight's range
+                // Checks to see if any highlights are visible
                 if (visibleRange.contains(range))
                 {
                     visibleMatch = true;
                 }
-                else if (!nearestMatch)
+                
+                // If there are no visible matches, get the nearest match's range
+                if (!visibleMatch)
                 {
                     const distance = Math.abs(cursorPos.line - line)
                     if (distance < minDistance)
@@ -277,8 +283,10 @@ async function searchAudioFlags(): Promise<void> {
                         nearestMatch = range;
                     }
                 }
-                match = lineText.indexOf(value, match + value.length);
+                // Move to next possible match
+                match = lowerLineText.indexOf(search, match + search.length);
             }
+            if (visibleMatch) break;
         }
         editor.setDecorations(highlightDecoration, highlights)
 
