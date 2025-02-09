@@ -472,8 +472,11 @@ async function showAudioFlagQuickPick(audioFlags: Flag[]): Promise<Tone | undefi
             if (selection.length >= 1)
             {
                 const temp = qp.selectedItems[0].label;
-                const temp2 = Tone.toneList.find((e)=>{e.name === temp});
-                playFlagMidi(temp2!);
+                Tone.toneList.forEach((e)=>{
+                    if(e.name === temp)
+                        playFlagMidi(e);
+                })
+
             }
         });
 
@@ -615,13 +618,13 @@ export class AudioFlagStorage {
                 const data = JSON.parse(value);
 
                 // Validate parsed data
-                if (typeof data.fileName !== 'string' ||
+               /* if (typeof data.fileName !== 'string' ||
                     typeof data.lineCount !== 'number' ||
                     !Array.isArray(data.audioFlags) ||
                     !(data.audioFlags as unknown[]).every(flag => typeof flag === 'string'))
                     {
                         throw new Error("Invalid data format");
-                    }
+                    }*/
 
                 return new Document(data.fileName, data.lineCount, data.audioFlags);
             } catch (error)
