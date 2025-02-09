@@ -419,7 +419,7 @@ function getLineNumber(editor: TextEditor | undefined): number {
  * @param editor the active TextEditor
  * @returns the tone of the audio flag or undefined.
  */
-export function getAudioFlagToneFromLineNumber(editor: TextEditor | undefined): string | undefined {
+export function getAudioFlagToneFromLineNumber(editor: TextEditor | undefined): Tone | undefined {
     if (!editor)
     {
         return undefined;
@@ -432,7 +432,7 @@ export function getAudioFlagToneFromLineNumber(editor: TextEditor | undefined): 
             const audioFlags = document.audioFlags;
             const flag = audioFlags.find((flag) => flag.lineNum === getLineNumber(editor));
             if (flag)
-                return flag.note as string;
+                return flag.note;
             else
                 return undefined;
         }
@@ -446,12 +446,12 @@ export function getAudioFlagToneFromLineNumber(editor: TextEditor | undefined): 
 async function showAudioFlagQuickPick(audioFlags: Flag[]): Promise<Tone | undefined> {
     return await new Promise<Tone | undefined>((resolve) => {
         // Get a list of tones names from the Tone enum.
-        const tones = Object.keys(Tone);
+        const tones = Tone.toneList;
         // Convert the list of tones names into QuickPickItems.
         const qpItems = tones.filter(function(tone) {
             // Filters the list of tones to only include ones not currently used in this document.
             return audioFlags.findIndex((flag) => flag.note === tone) === -1
-        }).map(tone => ({label: tone})); // Maps the list of tones to QuickPickItems.
+        }).map(tone => ({label: tone.name})); // Maps the list of tones to QuickPickItems.
 
         // Define a quick pick.
         const qp = window.createQuickPick();
@@ -471,7 +471,9 @@ async function showAudioFlagQuickPick(audioFlags: Flag[]): Promise<Tone | undefi
             // Plays the note of the current selection as a preview.
             if (selection.length >= 1)
             {
-                playFlagMidi(selection[0].label);
+                const temp = qp.selectedItems[0].label;
+                const temp2 = Tone.toneList.find((e)=>{e.name === temp});
+                playFlagMidi(temp2!);
             }
         });
 
@@ -480,7 +482,9 @@ async function showAudioFlagQuickPick(audioFlags: Flag[]): Promise<Tone | undefi
             // Returns the selected item if there is one. If there isn't one, undefined it returned.
             if (qp.selectedItems.length >= 1)
             {
-                resolve(qp.selectedItems[0].label as Tone);
+                const temp = qp.selectedItems[0].label;
+                const temp2 = Tone.toneList.find((e)=>{e.name === temp});
+                resolve(temp2);
                 qp.dispose();  
             }
         });
@@ -680,20 +684,36 @@ class Flag {
 }
 
 /**
- * A enum representing a Tone/Note to be used for Audio Flags.
+ * A class representing a Tone/Note to be used for Audio Flags.
  */
-enum Tone {
-    Piano1 = "D2",
-    Piano2 = "D4",
-    Piano3 = "D6",
-    Violin1 = "E2",
-    Violin2 = "E4",
-    Violin3 = "E6",
-    Guitar1 = "F2",
-    Guitar2 = "F4",
-    Guitar3 = "F6",
-    Marimba1 = "G2",
-    Marimba2 = "G4",
-    Marimba3  = "G6"
 
+export class Tone {
+    name: string;
+    instrument: number;
+    note: string;
+
+    constructor(name: string, instrument: number, note: string) {
+        this.name = name;
+        this.instrument = instrument;
+        this.note = note;
+    }
+
+    static toneList: Tone[] = [
+        new Tone("Piano1", 0, "D2"),
+        new Tone("Piano1", 0, "D4"),
+        new Tone("Piano1", 0, "D6"),
+
+        new Tone("Violin1", 40, "E2"),
+        new Tone("Violin2", 40, "E4"),
+        new Tone("Violin3", 40, "E6"),
+
+        new Tone("Guitar1", 24, "F2"),
+        new Tone("Guitar2", 24, "F4"),
+        new Tone("Guitar3", 24, "F6"),
+
+        new Tone("Marimba1", 12, "G2"),
+        new Tone("Marimba2", 12, "G4"),
+        new Tone("Marimba3", 12, "G6"),
+    ];
 }
+
