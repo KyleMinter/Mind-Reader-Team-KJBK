@@ -3,7 +3,8 @@ import pl = require("../pylex");
 import { CommandEntry } from "./commandEntry";
 import * as jzz from "jzz";
 import { outputMessage } from "./text";
-import { getAudioFlagToneFromLineNumber } from "./audioflags";
+import { getAudioFlagToneFromLineNumber, Tone} from "./audioflags";
+
 
 export const midicommands: CommandEntry[] = [
 	{
@@ -33,15 +34,16 @@ function playMidi(contextString: string, editor: TextEditor) {
 	const audioFlagNote = getAudioFlagToneFromLineNumber(editor);
 	var chordType: string;
 	if (audioFlagNote)
-		chordType = audioFlagNote;
+	{
+		chordType = audioFlagNote.note;
+		instrument = audioFlagNote.instrument;
+	}
 	else
+	{
 		chordType = lineContext(contextString);
-
-	//turns chordtype name into a note for flag sounds
-	chordType = convertChordType(chordType);
-
+		instrument = 0;
+	}
 	//changes instrument based on chordtype value
-	instrument = changeMidiInstrument(chordType);
 	output.send([0xC0, instrument]);
 
 	//plays sound for flag
@@ -51,78 +53,18 @@ function playMidi(contextString: string, editor: TextEditor) {
 	output.send([0xC0, 0]);
 }
 
-function changeMidiInstrument(chordType: string): number
-{
-	var num = 0;
-
-	//Changes midi to piano
-	if(chordType == 'D2' ||chordType == 'D4' || chordType == 'D6')
-		num = 0;
-
-	//Changes midi to violin
-	if(chordType == 'E2' ||chordType == 'E4' || chordType == 'E6')
-		num = 40;
-
-	//Changes midi to guitar
-	if(chordType == 'F2' ||chordType == 'F4' || chordType == 'F6')
-		num = 24;
-
-	//Changes midi to marimba
-	if(chordType == 'G2' ||chordType == 'G4' || chordType == 'G6')
-		num = 12;
-
-	return num;
-}
-
-function convertChordType(chordType: string): string
-{
-	if(chordType === "Piano1")
-		chordType = "D2";
-	if(chordType === "Piano2")
-		chordType = "D4";
-	if(chordType === "Piano3")
-		chordType = "D6";
-
-	if(chordType === "Violin1")
-		chordType = "E2";
-	if(chordType === "Violin2")
-		chordType = "E4";
-	if(chordType === "Violin3")
-		chordType = "E6";
-
-	if(chordType === "Guitar1")
-		chordType = "F2";
-	if(chordType === "Guitar2")
-		chordType = "F4";
-	if(chordType === "Guitar3")
-		chordType = "F6";
-
-	if(chordType === "Marimba1")
-		chordType = "G2";
-	if(chordType === "Marimba2")
-		chordType = "G4";
-	if(chordType === "Marimba3")
-		chordType = "G6";
-
-	return chordType;
-}
-
 //use to play notes when a flag is added. mainly used in audioflags.ts and this file
-export function playFlagMidi(note: string) {
+export function playFlagMidi(note: Tone) {
 	if (shouldPlayMIDINote)
 	{
 		var output = jzz().openMidiOut();
-		var instrument = 0;
+		var instrument = note.instrument;
 
-		//turns chordtype name into a note for flag sounds
-		note = convertChordType(note);
-
-		//changes instrument based on chordtype value
-		instrument = changeMidiInstrument(note);
+		//changes instrument based on note.instrument value
 		output.send([0xC0, instrument]);
 
 		//plays sound for flag
-		output.note(0, note, 127, 550);
+		output.note(0, note.note, 127, 550);
 
 		//changes sounds back to piano
 		output.send([0xC0, 0]);
