@@ -10,11 +10,15 @@ import {
     Memento,
     WorkspaceEdit,
     Uri,
-    QuickPickItem
+    QuickPickItem,
+    QuickInputButton,
+    ThemeIcon
 } from "vscode";
 import { CommandEntry } from "./commandEntry";
 import { playFlagMidi } from "./midi";
 import { highlightDeactivate } from "./lineHighlighter";
+import { match } from "assert";
+import { getVSCodeDownloadUrl } from "@vscode/test-electron/out/util";
 
 export const audioFlagCommands: CommandEntry[] = [
     {
@@ -24,10 +28,6 @@ export const audioFlagCommands: CommandEntry[] = [
     {
         name: "mind-reader.deleteAudioFlag",
         callback: deleteAudioFlag
-    },
-    {
-        name: "mind-reader.moveToAudioFlag",
-        callback: moveToAudioFlag
     },
     {
         name: "mind-reader.searchAudioFlags",
@@ -136,7 +136,7 @@ async function deleteAudioFlag(): Promise<void> {
     window.showTextDocument(editor.document, editor.viewColumn); // You are able to type without reclicking in document
 }
 
-async function moveToAudioFlag(): Promise<void> {
+async function moveToAudioFlag(audioFlags: Flag[]): Promise<void> {
     const editor: TextEditor | undefined = window.activeTextEditor;
 
     // Throw error if no editor open
@@ -153,7 +153,6 @@ async function moveToAudioFlag(): Promise<void> {
     }
 
     // Throw error if there are no audio flags in the file.
-    const audioFlags = document.audioFlags;
     if (audioFlags.length === 0) {
         window.showErrorMessage("MoveToAudioFlag: No Prexisting Audio Flag Present");
         return;
@@ -183,7 +182,7 @@ async function moveToAudioFlag(): Promise<void> {
         }
     }
 
-    // This should never happen, but we check if flagLiune and lastCharacter are undefined so Typescript doesn't complain.
+    // This should never happen, but we check if flagLine and lastCharacter are undefined so Typescript doesn't complain.
     if (flagLine === undefined || lastCharacter === undefined)
     {
         window.showErrorMessage("MoveToAudioFlag: Move Cursor Error");
@@ -229,6 +228,15 @@ async function searchAudioFlags(): Promise<void> {
     const searchBar = window.createInputBox();
     searchBar.placeholder = "Search audio flags...";
     const highlights: Range[] = [];
+    const matchingLines: number[] = [];
+
+    // Make button for moveto
+    const moveButton: QuickInputButton = {
+        iconPath: new ThemeIcon("arrow-small-right"),
+        tooltip: "Move to next flag"
+    };
+
+    searchBar.buttons = [moveButton];
 
     // Creates the highlight decoration for matched text
     const highlightDecoration = window.createTextEditorDecorationType({
@@ -241,6 +249,7 @@ async function searchAudioFlags(): Promise<void> {
         // Clear previous highlights to prevent incorrect highlights or decoration stacking
         editor.setDecorations(highlightDecoration, []);
         highlights.length = 0;
+        matchingLines.length = 0;
 
         // If the value is empty, do not search
         if (value == "")
@@ -266,6 +275,7 @@ async function searchAudioFlags(): Promise<void> {
             {
                 const range = new Range(line, match, line, match + search.length);
                 highlights.push(range);
+                matchingLines.push(line);
 
                 // Checks to see if any highlights are visible
                 if (visibleRange.contains(range))
@@ -303,6 +313,33 @@ async function searchAudioFlags(): Promise<void> {
         highlights.length = 0;
         editor.setDecorations(highlightDecoration, []);
     })
+
+    // Captures the trigger button=enter key to jump to flags
+    searchBar.onDidTriggerButton((button) => {
+        // Check whether to move through all audio flags or flags that match the search
+        if (button === moveButton)
+        {
+            if (matchingLines.length > 0)
+            {
+                const searchFlags: Flag[] = [];
+                // Match line# with flags, add to Flag[]
+                for (const flag of audioFlags)
+                {
+                    for (const l of matchingLines)
+                    {
+                        if (flag.lineNum === l)
+                            searchFlags.push(flag);
+                    }
+                }
+                moveToAudioFlag(searchFlags); 
+            }
+            else 
+            {
+                moveToAudioFlag(audioFlags); // Empty, loop through all flags
+            }
+        }
+    });
+
 
     searchBar.show()
 }

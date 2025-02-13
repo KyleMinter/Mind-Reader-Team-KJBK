@@ -553,7 +553,7 @@
 				"mac": "Ctrl+Shift+9"
 			},
 			{
-				"command": "mind-reader.moveToAudioFlag",
+				"command": "mind-reader.searchAudioFlags",
 				"key": "Ctrl+Shift+7",
 				"mac": "Ctrl+Shift+7"
 			}
