@@ -10,11 +10,16 @@ import {
     Memento,
     WorkspaceEdit,
     Uri,
-    QuickPickItem
+    QuickPickItem,
+    WorkspaceConfiguration,
+    QuickInputButton,
+    ThemeIcon
 } from "vscode";
 import { CommandEntry } from "./commandEntry";
 import { playFlagMidi } from "./midi";
 import { highlightDeactivate } from "./lineHighlighter";
+import { match } from "assert";
+import { getVSCodeDownloadUrl } from "@vscode/test-electron/out/util";
 
 export const audioFlagCommands: CommandEntry[] = [
     {
@@ -26,17 +31,13 @@ export const audioFlagCommands: CommandEntry[] = [
         callback: deleteAudioFlag
     },
     {
-        name: "mind-reader.moveToAudioFlag",
-        callback: moveToAudioFlag
-    },
-    {
         name: "mind-reader.searchAudioFlags",
         callback: searchAudioFlags
     }
 ];
-
 // Map to store audio flags for each text document.
 const openDocuments = new Map<string, Document>();
+
 
 /*
     ------------------------------------------------------------------------------------------------------------------------------------
@@ -136,7 +137,7 @@ async function deleteAudioFlag(): Promise<void> {
     window.showTextDocument(editor.document, editor.viewColumn); // You are able to type without reclicking in document
 }
 
-async function moveToAudioFlag(): Promise<void> {
+async function moveToAudioFlag(audioFlags: Flag[]): Promise<void> {
     const editor: TextEditor | undefined = window.activeTextEditor;
 
     // Throw error if no editor open
@@ -153,7 +154,6 @@ async function moveToAudioFlag(): Promise<void> {
     }
 
     // Throw error if there are no audio flags in the file.
-    const audioFlags = document.audioFlags;
     if (audioFlags.length === 0) {
         window.showErrorMessage("MoveToAudioFlag: No Prexisting Audio Flag Present");
         return;
@@ -183,7 +183,7 @@ async function moveToAudioFlag(): Promise<void> {
         }
     }
 
-    // This should never happen, but we check if flagLiune and lastCharacter are undefined so Typescript doesn't complain.
+    // This should never happen, but we check if flagLine and lastCharacter are undefined so Typescript doesn't complain.
     if (flagLine === undefined || lastCharacter === undefined)
     {
         window.showErrorMessage("MoveToAudioFlag: Move Cursor Error");
@@ -229,10 +229,42 @@ async function searchAudioFlags(): Promise<void> {
     const searchBar = window.createInputBox();
     searchBar.placeholder = "Search audio flags...";
     const highlights: Range[] = [];
+    const matchingLines: number[] = [];
+
+    // Make button for moveto
+    const moveButton: QuickInputButton = {
+        iconPath: new ThemeIcon("arrow-small-right"),
+        tooltip: "Move to next flag"
+    };
+
+    searchBar.buttons = [moveButton];
 
     // Creates the highlight decoration for matched text
+    const userConfig: WorkspaceConfiguration = workspace.getConfiguration(
+            "mind-reader.searchHighlighter",
+    );
+
+    const backgroundColor: string = userConfig.get("backgroundColor") || "#ffff004d";
+    const textColor: string = userConfig.get("textColor") || "#ffffff";
+    const borderColorTop: string = userConfig.get("borderColorTop") || "#c8c80080";
+    const borderColorBottom: string = userConfig.get("borderColorBottom") || "#c8c80080";
+    const borderColorLeft: string = userConfig.get("borderColorLeft") || "#c8c80080";
+    const borderColorRight: string = userConfig.get("borderColorRight") || "#c8c80080";
+    const borderStyleTop: string = userConfig.get("borderStyleTop") || "solid";
+    const borderStyleBottom: string = userConfig.get("borderStyleBottom") || "solid";
+    const borderStyleLeft: string = userConfig.get("borderStyleLeft") || "solid";
+    const borderStyleRight: string = userConfig.get("borderStyleRight") || "solid";
+    const borderWidthTop: string = userConfig.get("borderWidthTop") || "2px";
+    const borderWidthBottom: string = userConfig.get("borderWidthBottom") || "2px";
+    const borderWidthLeft: string = userConfig.get("borderWidthLeft") || "2px";
+    const borderWidthRight: string = userConfig.get("borderWidthRight") || "2px";
+
     const highlightDecoration = window.createTextEditorDecorationType({
-        backgroundColor: 'rgba(255,255,0,0.3)',
+        backgroundColor: `${backgroundColor}`,
+        color: `${textColor}`,
+        borderColor: `${borderColorTop} ${borderColorBottom} ${borderColorLeft} ${borderColorRight}`,
+        borderStyle: `${borderStyleTop} ${borderStyleBottom} ${borderStyleLeft} ${borderStyleRight}`,
+        borderWidth: `${borderWidthTop} ${borderWidthBottom} ${borderWidthLeft} ${borderWidthRight}`
     })
 
     // If the search value changes, check to see if the value matches any text within flagged lines
@@ -241,6 +273,7 @@ async function searchAudioFlags(): Promise<void> {
         // Clear previous highlights to prevent incorrect highlights or decoration stacking
         editor.setDecorations(highlightDecoration, []);
         highlights.length = 0;
+        matchingLines.length = 0;
 
         // If the value is empty, do not search
         if (value == "")
@@ -266,6 +299,7 @@ async function searchAudioFlags(): Promise<void> {
             {
                 const range = new Range(line, match, line, match + search.length);
                 highlights.push(range);
+                matchingLines.push(line);
 
                 // Checks to see if any highlights are visible
                 if (visibleRange.contains(range))
@@ -303,6 +337,33 @@ async function searchAudioFlags(): Promise<void> {
         highlights.length = 0;
         editor.setDecorations(highlightDecoration, []);
     })
+
+    // Captures the trigger button=enter key to jump to flags
+    searchBar.onDidTriggerButton((button) => {
+        // Check whether to move through all audio flags or flags that match the search
+        if (button === moveButton)
+        {
+            if (matchingLines.length > 0)
+            {
+                const searchFlags: Flag[] = [];
+                // Match line# with flags, add to Flag[]
+                for (const flag of audioFlags)
+                {
+                    for (const l of matchingLines)
+                    {
+                        if (flag.lineNum === l)
+                            searchFlags.push(flag);
+                    }
+                }
+                moveToAudioFlag(searchFlags); 
+            }
+            else 
+            {
+                moveToAudioFlag(audioFlags); // Empty, loop through all flags
+            }
+        }
+    });
+
 
     searchBar.show()
 }
@@ -419,7 +480,7 @@ function getLineNumber(editor: TextEditor | undefined): number {
  * @param editor the active TextEditor
  * @returns the tone of the audio flag or undefined.
  */
-export function getAudioFlagToneFromLineNumber(editor: TextEditor | undefined): string | undefined {
+export function getAudioFlagToneFromLineNumber(editor: TextEditor | undefined): Tone | undefined {
     if (!editor)
     {
         return undefined;
@@ -432,7 +493,7 @@ export function getAudioFlagToneFromLineNumber(editor: TextEditor | undefined): 
             const audioFlags = document.audioFlags;
             const flag = audioFlags.find((flag) => flag.lineNum === getLineNumber(editor));
             if (flag)
-                return flag.note as string;
+                return flag.note;
             else
                 return undefined;
         }
@@ -446,12 +507,12 @@ export function getAudioFlagToneFromLineNumber(editor: TextEditor | undefined): 
 async function showAudioFlagQuickPick(audioFlags: Flag[]): Promise<Tone | undefined> {
     return await new Promise<Tone | undefined>((resolve) => {
         // Get a list of tones names from the Tone enum.
-        const tones = Object.keys(Tone);
+        const tones = Tone.toneList;
         // Convert the list of tones names into QuickPickItems.
         const qpItems = tones.filter(function(tone) {
             // Filters the list of tones to only include ones not currently used in this document.
             return audioFlags.findIndex((flag) => flag.note === tone) === -1
-        }).map(tone => ({label: tone})); // Maps the list of tones to QuickPickItems.
+        }).map(tone => ({label: tone.name})); // Maps the list of tones to QuickPickItems.
 
         // Define a quick pick.
         const qp = window.createQuickPick();
@@ -471,7 +532,12 @@ async function showAudioFlagQuickPick(audioFlags: Flag[]): Promise<Tone | undefi
             // Plays the note of the current selection as a preview.
             if (selection.length >= 1)
             {
-                playFlagMidi(selection[0].label);
+                const temp = qp.selectedItems[0].label;
+                Tone.toneList.forEach((e)=>{
+                    if(e.name === temp)
+                        playFlagMidi(e);
+                })
+
             }
         });
 
@@ -480,7 +546,12 @@ async function showAudioFlagQuickPick(audioFlags: Flag[]): Promise<Tone | undefi
             // Returns the selected item if there is one. If there isn't one, undefined it returned.
             if (qp.selectedItems.length >= 1)
             {
-                resolve(qp.selectedItems[0].label as Tone);
+                const temp = qp.selectedItems[0].label;
+                Tone.toneList.forEach((e)=>{
+                    if(e.name === temp)
+                        resolve(e);
+                })
+                resolve(undefined);
                 qp.dispose();  
             }
         });
@@ -608,13 +679,13 @@ export class AudioFlagStorage {
                 const data = JSON.parse(value);
 
                 // Validate parsed data
-                if (typeof data.fileName !== 'string' ||
+               /* if (typeof data.fileName !== 'string' ||
                     typeof data.lineCount !== 'number' ||
                     !Array.isArray(data.audioFlags) ||
                     !(data.audioFlags as unknown[]).every(flag => typeof flag === 'string'))
                     {
                         throw new Error("Invalid data format");
-                    }
+                    }*/
 
                 return new Document(data.fileName, data.lineCount, data.audioFlags);
             } catch (error)
@@ -678,22 +749,38 @@ class Flag {
         this.note = note;
     }
 }
-
 /**
- * A enum representing a Tone/Note to be used for Audio Flags.
+ * A class representing a Tone/Note to be used for Audio Flags.
  */
-enum Tone {
-    Piano1 = "D2",
-    Piano2 = "D4",
-    Piano3 = "D6",
-    Violin1 = "E2",
-    Violin2 = "E4",
-    Violin3 = "E6",
-    Guitar1 = "F2",
-    Guitar2 = "F4",
-    Guitar3 = "F6",
-    Marimba1 = "G2",
-    Marimba2 = "G4",
-    Marimba3  = "G6"
+export class Tone {
+    name: string;
+    instrument: number;
+    note: string;
 
+    constructor(name: string, instrument: number, note: string) {
+        this.name = name;
+        this.instrument = instrument;
+        this.note = note;
+    }
+    static toneList: Tone[] = [
+        {name: "Piano1", instrument: 0, note: "D2"},
+        {name: "Piano2", instrument: 0, note: "D4"},
+        {name: "Piano3", instrument: 0, note: "D6"},
+    
+        {name: "Violin1", instrument: 40, note: "E2"},
+        {name: "Violin2", instrument: 40, note: "E4"},
+        {name: "Violin3", instrument: 40, note: "E6"},
+    
+        {name: "Guitar1", instrument: 24, note: "F2"},
+        {name: "Guitar2", instrument: 24, note: "F4"},
+        {name: "Guitar3", instrument: 24, note: "F6"},
+    
+        {name: "Marimba1", instrument: 12, note: "G2"},
+        {name: "Marimba2", instrument: 12, note: "G4"},
+        {name: "Marimba3", instrument: 12, note: "G6"}
+    ];
+    
 }
+
+
+
