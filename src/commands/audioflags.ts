@@ -11,6 +11,7 @@ import {
     WorkspaceEdit,
     Uri,
     QuickPickItem,
+    WorkspaceConfiguration,
     QuickInputButton,
     ThemeIcon
 } from "vscode";
@@ -239,8 +240,31 @@ async function searchAudioFlags(): Promise<void> {
     searchBar.buttons = [moveButton];
 
     // Creates the highlight decoration for matched text
+    const userConfig: WorkspaceConfiguration = workspace.getConfiguration(
+            "mind-reader.searchHighlighter",
+    );
+
+    const backgroundColor: string = userConfig.get("backgroundColor") || "#ffff004d";
+    const textColor: string = userConfig.get("textColor") || "#ffffff";
+    const borderColorTop: string = userConfig.get("borderColorTop") || "#c8c80080";
+    const borderColorBottom: string = userConfig.get("borderColorBottom") || "#c8c80080";
+    const borderColorLeft: string = userConfig.get("borderColorLeft") || "#c8c80080";
+    const borderColorRight: string = userConfig.get("borderColorRight") || "#c8c80080";
+    const borderStyleTop: string = userConfig.get("borderStyleTop") || "solid";
+    const borderStyleBottom: string = userConfig.get("borderStyleBottom") || "solid";
+    const borderStyleLeft: string = userConfig.get("borderStyleLeft") || "solid";
+    const borderStyleRight: string = userConfig.get("borderStyleRight") || "solid";
+    const borderWidthTop: string = userConfig.get("borderWidthTop") || "2px";
+    const borderWidthBottom: string = userConfig.get("borderWidthBottom") || "2px";
+    const borderWidthLeft: string = userConfig.get("borderWidthLeft") || "2px";
+    const borderWidthRight: string = userConfig.get("borderWidthRight") || "2px";
+
     const highlightDecoration = window.createTextEditorDecorationType({
-        backgroundColor: 'rgba(255,255,0,0.3)',
+        backgroundColor: `${backgroundColor}`,
+        color: `${textColor}`,
+        borderColor: `${borderColorTop} ${borderColorBottom} ${borderColorLeft} ${borderColorRight}`,
+        borderStyle: `${borderStyleTop} ${borderStyleBottom} ${borderStyleLeft} ${borderStyleRight}`,
+        borderWidth: `${borderWidthTop} ${borderWidthBottom} ${borderWidthLeft} ${borderWidthRight}`
     })
 
     // If the search value changes, check to see if the value matches any text within flagged lines
