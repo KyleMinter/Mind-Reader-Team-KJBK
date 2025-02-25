@@ -26,23 +26,12 @@ export function toggleSoundCues(): boolean {
 	return shouldPlayMIDINote;
 }
 
-window.onDidChangeTextEditorSelection(playerContext);
+window.onDidChangeTextEditorSelection(invokeMidiOutput);
 
-function playMidi(contextString: string, editor: TextEditor) {
-	var instrument = 0;
-	var output = jzz().openMidiOut();
-	const audioFlagNote = getAudioFlagToneFromLineNumber(editor);
-	var chordType: string;
-	if (audioFlagNote)
-	{
-		chordType = audioFlagNote.note;
-		instrument = audioFlagNote.instrument;
-	}
-	else
-	{
-		chordType = lineContext(contextString);
-		instrument = 0;
-	}
+// plays a given chord type and instrument.
+function playMidi(chordType: string, instrument: number) {
+	let output = jzz().openMidiOut();
+
 	//changes instrument based on chordtype value
 	output.send([0xC0, instrument]);
 
@@ -53,49 +42,64 @@ function playMidi(contextString: string, editor: TextEditor) {
 	output.send([0xC0, 0]);
 }
 
-//use to play notes when a flag is added. mainly used in audioflags.ts and this file
+// Used to play notes when a flag is added. Mainly used in audioflags.ts and this file
 export function playFlagMidi(note: Tone) {
 	if (shouldPlayMIDINote)
 	{
-		var output = jzz().openMidiOut();
-		var instrument = note.instrument;
+		const chordType = note.note;
+		const instrument = note.instrument;
 
-		//changes instrument based on note.instrument value
-		output.send([0xC0, instrument]);
-
-		//plays sound for flag
-		output.note(0, note.note, 127, 550);
-
-		//changes sounds back to piano
-		output.send([0xC0, 0]);
+		playMidi(chordType, instrument);
 	}
 }
 
-function playerContext(_event: TextEditorSelectionChangeEvent) {
+// Invoked whenever the cursor moved to a new line in a text document.
+function invokeMidiOutput(_event: TextEditorSelectionChangeEvent) {
 	const editor = window.activeTextEditor;
 
 	if (editor && shouldPlayMIDINote) {
-		// current text and line number
-		const editorText: string = editor.document.getText();
-		const line: number = editor.selection.active.line;
-		// get tab info settings
-		const size: number =
-			typeof editor.options.tabSize === "number"
-				? editor.options.tabSize
-				: 4;
-		const hard: boolean = !editor.options.insertSpaces;
-		// initialize parser
-		const parser: pl.Parser = new pl.Parser(editorText, {
-			size,
-			hard,
-		});
 
-		parser.parse();
-		const context: pl.LexNode[] = parser.context(line);
-		// build text
-		const contextString: string = createContextString(context);
-		playMidi(contextString, editor);
+		let chordType: string;
+		let instrument: number;
+
+		// Determine if an audio flag tone should be played or a context string should be built for the line.
+		const audioFlagNote = getAudioFlagToneFromLineNumber(editor);
+		if (audioFlagNote) {
+			chordType = audioFlagNote.note;
+			instrument = audioFlagNote.instrument;
+		}
+		else {
+			const contextString: string = playerContext(editor);
+			chordType = lineContext(contextString);
+			instrument = 0;
+		}
+
+		// Play the determined midi output.
+		playMidi(chordType, instrument);
 	}
+}
+
+function playerContext(editor: TextEditor): string {
+	const editorText: string = editor.document.getText();
+	const line: number = editor.selection.active.line;
+	// get tab info settings
+	const size: number =
+		typeof editor.options.tabSize === "number"
+			? editor.options.tabSize
+			: 4;
+	const hard: boolean = !editor.options.insertSpaces;
+	// initialize parser
+	const parser: pl.Parser = new pl.Parser(editorText, {
+		size,
+		hard,
+	});
+
+	parser.parse();
+	const context: pl.LexNode[] = parser.context(line);
+	// build text
+	const contextString: string = createContextString(context);
+	return contextString;
+
 }
 
 function createContextString(context: pl.LexNode[]): string {
