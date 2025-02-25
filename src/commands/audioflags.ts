@@ -540,7 +540,7 @@ async function showAudioFlagQuickPick(audioFlags: Flag[]): Promise<Tone | undefi
             // Plays the note of the current selection as a preview.
             if (selection.length >= 1)
             {
-                const temp = qp.selectedItems[0].label;
+                const temp = selection[0].label;
                 Tone.toneList.forEach((e)=>{
                     if(e.name === temp)
                         playFlagMidi(e);
