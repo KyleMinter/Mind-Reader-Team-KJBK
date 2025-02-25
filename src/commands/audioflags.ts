@@ -33,6 +33,10 @@ export const audioFlagCommands: CommandEntry[] = [
     {
         name: "mind-reader.searchAudioFlags",
         callback: searchAudioFlags
+    },
+    {
+        name: "mind-reader.playLineAudio",
+        callback: playLineAudio
     }
 ];
 // Map to store audio flags for each text document.
@@ -366,6 +370,10 @@ async function searchAudioFlags(): Promise<void> {
 
 
     searchBar.show()
+}
+
+async function playLineAudio(): Promise<void> {
+
 }
 
 /*

@@ -431,13 +431,18 @@
 				"category": "Audio Flag"
 			},
 			{
-				"command": "mind-reader.removeAudioFlag",
-				"title": "Remove Existing Audio Flag",
+				"command": "mind-reader.deleteAudioFlag",
+				"title": "Delete Audio Flag",
 				"category": "Audio Flag"
 			},
 			{
-				"command": "mind-reader.moveToAudioFlag",
-				"title": "Move To Audio Flag",
+				"command": "mind-reader.searchAudioFlags",
+				"title": "Search Audio Flags",
+				"category": "Audio Flag"
+			},
+			{
+				"command": "mind-reader.playLineAudio",
+				"title": "Play Line Audio",
 				"category": "Audio Flag"
 			}
 		],
@@ -556,6 +561,11 @@
 				"command": "mind-reader.searchAudioFlags",
 				"key": "Ctrl+Shift+7",
 				"mac": "Ctrl+Shift+7"
+			},
+			{
+				"command": "mind-reader.playLineAudio",
+				"key": "Ctrl+Shift+6",
+				"mac": "Ctrl+Shift+6"
 			}
 		],
 		"menus": {
