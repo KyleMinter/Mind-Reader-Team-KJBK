@@ -26,8 +26,6 @@ export function toggleSoundCues(): boolean {
 	return shouldPlayMIDINote;
 }
 
-window.onDidChangeTextEditorSelection(invokeMidiOutput);
-
 // plays a given chord type and instrument.
 function playMidi(chordType: string, instrument: number) {
 	let output = jzz().openMidiOut();
@@ -54,7 +52,7 @@ export function playFlagMidi(note: Tone) {
 }
 
 // Invoked whenever the cursor moved to a new line in a text document.
-function invokeMidiOutput(_event: TextEditorSelectionChangeEvent) {
+export function invokeMidiOutput() {
 	const editor = window.activeTextEditor;
 
 	if (editor && shouldPlayMIDINote) {

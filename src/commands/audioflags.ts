@@ -10,16 +10,12 @@ import {
     Memento,
     WorkspaceEdit,
     Uri,
-    QuickPickItem,
     WorkspaceConfiguration,
     QuickInputButton,
     ThemeIcon
 } from "vscode";
 import { CommandEntry } from "./commandEntry";
-import { playFlagMidi } from "./midi";
-import { highlightDeactivate } from "./lineHighlighter";
-import { match } from "assert";
-import { getVSCodeDownloadUrl } from "@vscode/test-electron/out/util";
+import { playFlagMidi, invokeMidiOutput } from "./midi";
 
 export const audioFlagCommands: CommandEntry[] = [
     {
@@ -373,7 +369,7 @@ async function searchAudioFlags(): Promise<void> {
 }
 
 async function playLineAudio(): Promise<void> {
-
+    invokeMidiOutput();
 }
 
 /*
