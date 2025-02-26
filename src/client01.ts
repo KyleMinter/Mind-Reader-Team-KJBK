@@ -12,7 +12,6 @@ import {
 	textCommands,
 	voicetotextCommands,
 	TTSCommand,
-	midicommands,
 	lineHighlightercommands,
 	audioFlagCommands
 } from "./commands";
@@ -23,7 +22,6 @@ const allCommands = [
 	navCommands,
 	textCommands,
 	TTSCommand,
-	midicommands,
 	lineHighlightercommands,
 	audioFlagCommands
 ].flat(1);

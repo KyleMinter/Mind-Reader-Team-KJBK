@@ -15,7 +15,6 @@ import {
 	textCommands,
 	voicetotextCommands,
 	TTSCommand,
-	midicommands,
 	lineHighlightercommands,
 	voiceCommands,
 	audioFlagCommands
@@ -51,7 +50,6 @@ export function activate(context: vscode.ExtensionContext) {
 		navCommands,
 		textCommands,
 		TTSCommand,
-		midicommands,
 		lineHighlightercommands,
 		voiceCommands,
 		audioFlagCommands

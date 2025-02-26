@@ -524,6 +524,11 @@ async function showAudioFlagQuickPick(audioFlags: Flag[]): Promise<Tone | undefi
         qp.canSelectMany = false;
         qp.ignoreFocusOut = true;
         qp.title = "Select Audio Flag Tone";
+        const previewButton: QuickInputButton = {
+            iconPath: new ThemeIcon("debug-start"),
+            tooltip: "Preview audio tone"
+        };
+        qp.buttons = [previewButton];
 
         // An event listener for when the quick pick is hidden (i.e. cancelled).
         qp.onDidHide(() => {
@@ -531,17 +536,18 @@ async function showAudioFlagQuickPick(audioFlags: Flag[]): Promise<Tone | undefi
             qp.dispose();
         });
 
-        // An event listener for when the active selection of the quick pick is changed.
-        qp.onDidChangeActive(selection => {
-            // Plays the note of the current selection as a preview.
-            if (selection.length >= 1)
+        // An event listener for when the quick pick button is clicked.
+        qp.onDidTriggerButton((button) => {
+            if (button === previewButton)
             {
-                const temp = selection[0].label;
-                Tone.toneList.forEach((e)=>{
-                    if(e.name === temp)
-                        playFlagMidi(e);
-                })
-
+                if (qp.activeItems.length >= 1) {
+                    // Play the actively selected audio tone.
+                    const temp = qp.activeItems[0].label;
+                    Tone.toneList.forEach((e) => {
+                        if (e.name === temp)
+                            playFlagMidi(e);
+                    });
+                }
             }
         });
 
@@ -551,7 +557,7 @@ async function showAudioFlagQuickPick(audioFlags: Flag[]): Promise<Tone | undefi
             if (qp.selectedItems.length >= 1)
             {
                 const temp = qp.selectedItems[0].label;
-                Tone.toneList.forEach((e)=>{
+                Tone.toneList.forEach((e) => {
                     if(e.name === temp)
                         resolve(e);
                 })

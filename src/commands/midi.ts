@@ -1,30 +1,8 @@
-import { TextEditorSelectionChangeEvent, window, workspace, TextEditor } from "vscode";
+import { window, workspace, TextEditor } from "vscode";
 import pl = require("../pylex");
-import { CommandEntry } from "./commandEntry";
 import * as jzz from "jzz";
-import { outputMessage } from "./text";
 import { getAudioFlagToneFromLineNumber, Tone} from "./audioflags";
 
-
-export const midicommands: CommandEntry[] = [
-	{
-		name: "mind-reader.toggleSoundCues",
-		callback: toggleSoundCues,
-	},
-];
-
-
-let shouldPlayMIDINote = false;
-
-export function toggleSoundCues(): boolean {
-	shouldPlayMIDINote = !shouldPlayMIDINote;
-	if (shouldPlayMIDINote) {
-		outputMessage("Sound Cues Activated");
-	} else {
-		outputMessage("Sound Cues Deactivated");
-	}
-	return shouldPlayMIDINote;
-}
 
 // plays a given chord type and instrument.
 function playMidi(chordType: string, instrument: number) {
@@ -42,20 +20,16 @@ function playMidi(chordType: string, instrument: number) {
 
 // Used to play notes when a flag is added. Mainly used in audioflags.ts and this file
 export function playFlagMidi(note: Tone) {
-	if (shouldPlayMIDINote)
-	{
-		const chordType = note.note;
-		const instrument = note.instrument;
-
-		playMidi(chordType, instrument);
-	}
+	const chordType = note.note;
+	const instrument = note.instrument;
+	playMidi(chordType, instrument);
 }
 
 // Invoked whenever the cursor moved to a new line in a text document.
 export function invokeMidiOutput() {
 	const editor = window.activeTextEditor;
 
-	if (editor && shouldPlayMIDINote) {
+	if (editor) {
 
 		let chordType: string;
 		let instrument: number;
