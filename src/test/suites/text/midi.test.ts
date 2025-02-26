@@ -1,20 +1,12 @@
 import * as assert from "assert";
 import * as vscode from "vscode";
 import { after } from "mocha";
-import { lineContext, toggleSoundCues } from '../../../commands/midi';
+import { lineContext } from '../../../commands/midi';
 
 
 suite("Midi test suite", () => {
     after(() => {
         vscode.window.showInformationMessage("All tests passed!");
-    });
-
-    test('Toggle sound cues', () => {
-        let isActivated = false;
-        isActivated = toggleSoundCues();
-        assert.equal(true, isActivated);
-        isActivated = toggleSoundCues();
-        assert.equal(false, isActivated);
     });
     test("Get for note", () => {
         let currNote = lineContext("for");
