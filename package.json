@@ -333,11 +333,6 @@
 				"voiceEntry": "Move Cursor End"
 			},
 			{
-				"command": "mind-reader.toggleSoundCues",
-				"title": "Toggle Sound Cues",
-				"category": "Mind Reader"
-			},
-			{
 				"command": "ev3devBrowser.deviceTreeItem.openSshTerminal",
 				"title": "Open SSH Terminal"
 			},
@@ -533,11 +528,6 @@
 				"when": "editorTextFocus"
 			},
 			{
-				"command": "mind-reader.toggleSoundCues",
-				"key": "Ctrl+Shift+/ T",
-				"mac": "Ctrl+Shift+[Slash] T"
-			},
-			{
 				"command": "mind-reader.toggleLineHighlight",
 				"key": "Ctrl+Shift+/ H",
 				"mac": "Ctrl+Shift+[Slash] H"
@@ -652,11 +642,6 @@
 					"command": "mind-reader.openWebview",
 					"group": "z_disabled@99",
 					"when": "false"
-				},
-				{
-					"command": "mind-reader.toggleSoundCues",
-					"group": "sound_cues@0",
-					"when": "activeEditor"
 				}
 			],
 			"commandPalette": [
