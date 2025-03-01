@@ -407,6 +407,9 @@ export function changeHighlightColor() {
 				.update("textColor", tColor, true);
 			workspace
 				.getConfiguration("mind-reader.lineHighlighter")
+				.update("borderColorTop", olColor, true);
+			workspace
+				.getConfiguration("mind-reader.lineHighlighter")
 				.update("borderColorBottom", olColor, true);
 			workspace
 				.getConfiguration("mind-reader.lineHighlighter")

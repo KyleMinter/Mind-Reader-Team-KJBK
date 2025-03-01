@@ -16,6 +16,9 @@ import {
 } from "vscode";
 import { CommandEntry } from "./commandEntry";
 import { playFlagMidi, invokeMidiOutput } from "./midi";
+import * as vscode from "vscode";
+import * as path from "path";
+import * as fs from "fs";
 
 export const audioFlagCommands: CommandEntry[] = [
     {
@@ -33,6 +36,10 @@ export const audioFlagCommands: CommandEntry[] = [
     {
         name: "mind-reader.playLineAudio",
         callback: playLineAudio
+    },
+    {
+        name: "mind-reader.configureSearchHighlight",
+        callback: changeHighlightColor
     }
 ];
 // Map to store audio flags for each text document.
@@ -320,9 +327,8 @@ async function searchAudioFlags(): Promise<void> {
                 // Move to next possible match
                 match = lowerLineText.indexOf(search, match + search.length);
             }
-            if (visibleMatch) break;
         }
-        editor.setDecorations(highlightDecoration, highlights)
+        editor.setDecorations(highlightDecoration, highlights);
 
         // Jumps to the closest highlighted text if there is none on screen
         if (!visibleMatch && nearestMatch)
@@ -366,6 +372,95 @@ async function searchAudioFlags(): Promise<void> {
 
 
     searchBar.show()
+}
+
+async function changeHighlightColor(): Promise<void> {
+    let currentPanel: vscode.WebviewPanel | undefined;
+
+    const columnToShowIn = vscode.window.activeTextEditor
+        ? vscode.window.activeTextEditor.viewColumn
+        : undefined;
+
+    if (!currentPanel) {
+        currentPanel = vscode.window.createWebviewPanel(
+            "changeHighlightColor",
+            "Highlight Color Picker",
+            vscode.ViewColumn.One,
+            {
+                enableScripts: true,
+                retainContextWhenHidden: true,
+            },
+        );
+
+        const webviewUri = vscode.Uri.file(
+            path.join(
+                path
+                    .normalize(__dirname)
+                    .replace(`${path.sep}out${path.sep}commands`, ""), //Project root
+                "webviews",
+                "ChangeSearchHighlight",
+            ),
+        );
+        const stylesPath = vscode.Uri.joinPath(webviewUri, "index.css");
+        const scriptsPath = vscode.Uri.joinPath(webviewUri, "index.js");
+        const viewPath = vscode.Uri.joinPath(webviewUri, "index.html");
+
+        currentPanel.webview.html = getWebviewContent({
+            stylesPath: currentPanel.webview.asWebviewUri(stylesPath),
+            scriptsPath: currentPanel.webview.asWebviewUri(scriptsPath),
+            viewPath: viewPath.fsPath,
+        });
+
+        const backgroundColor = vscode.workspace
+            .getConfiguration("mind-reader.searchHighlighter")
+            .get<string>("backgroundColor");
+        const outlineColor = vscode.workspace
+            .getConfiguration("mind-reader.searchHighlighter")
+            .get<string>("outlineColor");
+        const secondaryHighlightColor = vscode.workspace
+            .getConfiguration("mind-reader.searchHighlighter")
+            .get<string>("selectionColor");
+        const textColor = vscode.workspace
+            .getConfiguration("mind-reader.searchHighlighter")
+            .get<string>("textColor");
+        currentPanel.webview.postMessage({ backgroundColor, outlineColor, textColor, secondaryHighlightColor});
+
+        currentPanel.onDidDispose(() => {
+            currentPanel = undefined;
+        });
+    } else {
+        currentPanel.reveal(columnToShowIn);
+    }
+
+    currentPanel.webview.onDidReceiveMessage((message) => {
+        if (message.type === "selectedColors") {
+            const bgColor = message.backgroundColor;
+            const olColor = message.outlineColor;
+            const tColor = message.textColor;
+            const sbColor = message.secondaryHighlightColor
+            workspace
+                .getConfiguration("mind-reader.searchHighlighter")
+                .update("backgroundColor", bgColor, true);
+            workspace
+                .getConfiguration("mind-reader.searchHighlighter")
+                .update("textColor", tColor, true);
+            workspace
+                .getConfiguration("mind-reader.searchHighlighter")
+                .update("borderColorTop", olColor, true);
+            workspace
+                .getConfiguration("mind-reader.searchHighlighter")
+                .update("borderColorBottom", olColor, true);
+            workspace
+                .getConfiguration("mind-reader.searchHighlighter")
+                .update("borderColorLeft", olColor, true);
+            workspace
+                .getConfiguration("mind-reader.searchHighlighter")
+                .update("borderColorRight", olColor, true);
+            workspace
+                .getConfiguration("mind-reader.searchHighlighter")
+                .update("selectionColor", sbColor, true);
+        }
+    });
 }
 
 async function playLineAudio(): Promise<void> {
@@ -792,5 +887,14 @@ export class Tone {
     
 }
 
+type ChangeHighlightWebviewProps = {
+    stylesPath: vscode.Uri;
+    scriptsPath: vscode.Uri;
+    viewPath: string;
+};
 
+function getWebviewContent({stylesPath, scriptsPath, viewPath}: ChangeHighlightWebviewProps){
+    const html = fs.readFileSync(viewPath).toString();
+    return eval(`\`${html}\``);
+}
 
