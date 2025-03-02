@@ -227,6 +227,7 @@ async function searchAudioFlags(): Promise<void> {
 
     // Create the input box for the search bar and 
     const searchBar = window.createInputBox();
+    searchBar.ignoreFocusOut = true;
     searchBar.placeholder = "Search audio flags...";
     const highlights: Range[] = [];
     const matchingLines: number[] = [];
@@ -338,7 +339,7 @@ async function searchAudioFlags(): Promise<void> {
         editor.setDecorations(highlightDecoration, []);
     })
 
-    // Captures the trigger button=enter key to jump to flags
+    // Captures the trigger button key to jump to flags
     searchBar.onDidTriggerButton((button) => {
         // Check whether to move through all audio flags or flags that match the search
         if (button === moveButton)
