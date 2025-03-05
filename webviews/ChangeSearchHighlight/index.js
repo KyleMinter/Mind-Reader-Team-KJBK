@@ -1,13 +1,15 @@
 const vscode = acquireVsCodeApi();
 
 window.addEventListener("message", (event) => {
+	console.log("Received message from extension:", event.data);
 	//color values can be any CSS-compliant format. Convert these to 8-digit hex values for ease of use
 	const colors = event.data;
 	const backgroundColor =
 		rgbaToHex(parseCSSColor(colors.backgroundColor)) || "#00000000";
 	const outlineColor =
 		rgbaToHex(parseCSSColor(colors.outlineColor)) || "#00000000";
-	const textColor = rgbaToHex(parseCSSColor(colors.textColor)) || "#00000000";
+	const textColor = 
+		rgbaToHex(parseCSSColor(colors.textColor)) || "#00000000";
 	const secondaryHighlightColor =
 		rgbaToHex(parseCSSColor(colors.secondaryHighlightColor)) || "#00000000";
 
@@ -15,12 +17,10 @@ window.addEventListener("message", (event) => {
 	const outlineInput = document.getElementById("outline");
 	const textInput = document.getElementById("text");
 	const secondaryColorInput = document.getElementById("secondaryColor");
-	const backgroundOpacitySlider =
-		document.getElementById("backgroundOpacity");
+	const backgroundOpacitySlider = document.getElementById("backgroundOpacity");
 	const outlineOpacitySlider = document.getElementById("outlineOpacity");
 	const textOpacitySlider = document.getElementById("textOpacity");
-	const selectionColorOpacitySlider =
-		document.getElementById("selectionOpacity");
+	const selectionColorOpacitySlider = document.getElementById("selectionOpacity");
 	const bodyEnabled = document.getElementById("bodyEnabled");
 	const outlineEnabled = document.getElementById("outlineEnabled");
 	const textEnabled = document.getElementById("textEnabled");
