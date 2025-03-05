@@ -1008,6 +1008,138 @@
 				}
 			},
 			{
+				"title": "Search Highlighter",
+				"order": 2,
+				"properties": {
+					"mind-reader.searchHighlighter.backgroundColor": {
+						"order": 6,
+						"type": "string",
+						"markdownDescription": "Set the background color to be used by the search highlighter.\n\nSyntax: _color_ or `transparent`\n\nAvailable color formats include:\n* `HEX(A)`: for Hexadecimal Colors: `#RRGGBB` or `#RRGGBBAA` to add transparency\n* `RGB(A)`: for RGB Colors: `rgb(red, green, blue)` or `rgba(red, green, blue, alpha)`\n* `HSL(A)`: for HSL Colors: `hsl(hue, saturation, lightness)` or `hsla(hue, saturation, lightness, alpha)`\n* `Predefined Color Names`: 140 color names are predefined in the HTML and CSS color specification: `blue`, `red`, `coral`, `brown`, [etc...](https://www.w3schools.com/colors/colors_names.asp)\n* `None`: For no color to be applied: Sometimes VSCode will pull a color from your theme, other times it uses black\n* `#4D4D00` is our default",
+						"default": "#4D4D00"
+					},
+					"mind-reader.searchHighlighter.outlineColor": {
+						"order": 7,
+						"type": "string",
+						"markdownDescription": "Set the outline color to be used by the search highlighter.\n\nSyntax: _color_ or `transparent`\n\nAvailable color formats include:\n* `HEX(A)`: for Hexadecimal Colors: `#RRGGBB` or `#RRGGBBAA` to add transparency\n* `RGB(A)`: for RGB Colors: `rgb(red, green, blue)` or `rgba(red, green, blue, alpha)`\n* `HSL(A)`: for HSL Colors: `hsl(hue, saturation, lightness)` or `hsla(hue, saturation, lightness, alpha)`\n* `Predefined Color Names`: 140 color names are predefined in the HTML and CSS color specification: `blue`, `red`, `coral`, `brown`, [etc...](https://www.w3schools.com/colors/colors_names.asp)\n* `None`: For no color to be applied: Sometimes VSCode will pull a color from your theme, other times it uses black\n* `#C8C800` is our default",
+						"default": "#C8C800"
+					},
+					"mind-reader.searchHighlighter.outlineWidth": {
+						"order": 8,
+						"type": "string",
+						"markdownDescription": "Set the outline width to be used by the search highlighter.\n\nSyntax: `medium` or `thin` or `thick` or `length` or `none`\n* `medium`: Specifies a medium outline. (usual default)\n* `thin`: Specifies a thin outline\n* `thick`: Specifies a thick outline\n* `length`: you to define the thickness of the outline in [length](https://www.w3schools.com/cssref/css_units.asp) units.\n* `none`: No outline width will be applied\n* `1px` is our default",
+						"default": "1px"
+					},
+					"mind-reader.searchHighlighter.outlineStyle": {
+						"order": 9,
+						"type": "string",
+						"markdownDescription": "Set the outline style to be used by the search highlighter.\n\nSyntax: `none` or `hidden` or `dotted` or `dashed` or `solid` or `double` or `groove` or `ridge` or `inset` or `outset`\n* `none`: No border will be applied (usual default)\n* `hidden`: The same as `none`\n* `dotted`: Dotted border\n* `dashed`: Dashed border\n* `solid (our default)`: Solid border\n* `double`: Double border\n* `groove`: 3D grooved border, depends on the outline-color value.\n* `ridge`: 3D ridged border, depends on the outline-color value.\n* `inset`: 3D inset border, depends on the outline-color value.\n* `outset`: 3D outset border, depends on the outline-color value.",
+						"default": "solid"
+					},
+					"mind-reader.searchHighlighter.borderColorTop": {
+						"order": 10,
+						"type": "string",
+						"markdownDescription": "Set the top border color to be used by the search highlighter.\n\nSyntax: _color_ or `transparent`\n\nAvailable color formats include:\n* `HEX(A)`: for Hexadecimal Colors: `#RRGGBB` or `#RRGGBBAA` to add transparency\n* `RGB(A)`: for RGB Colors: `rgb(red, green, blue)` or `rgba(red, green, blue, alpha)`\n* `HSL(A)`: for HSL Colors: `hsl(hue, saturation, lightness)` or `hsla(hue, saturation, lightness, alpha)`\n* `Predefined Color Names`: 140 color names are predefined in the HTML and CSS color specification: `blue`, `red`, `coral`, `brown`, [etc...](https://www.w3schools.com/colors/colors_names.asp)\n* `None`: For no color to be applied: Sometimes VSCode will pull a color from your theme, other times it uses black\n* `#C8C800` is our default",
+						"default": "#C8C800"
+					},
+					"mind-reader.searchHighlighter.borderColorRight": {
+						"order": 11,
+						"type": "string",
+						"markdownDescription": "Set the right border color to be used by the search highlighter.\n\nSyntax: _color_ or `transparent`\n\nAvailable color formats include:\n* `HEX(A)`: for Hexadecimal Colors: `#RRGGBB` or `#RRGGBBAA` to add transparency\n* `RGB(A)`: for RGB Colors: `rgb(red, green, blue)` or `rgba(red, green, blue, alpha)`\n* `HSL(A)`: for HSL Colors: `hsl(hue, saturation, lightness)` or `hsla(hue, saturation, lightness, alpha)`\n* `Predefined Color Names`: 140 color names are predefined in the HTML and CSS color specification: `blue`, `red`, `coral`, `brown`, [etc...](https://www.w3schools.com/colors/colors_names.asp)\n* `None`: For no color to be applied: Sometimes VSCode will pull a color from your theme, other times it uses black\n* `#C8C800` is our default",
+						"default": "#C8C800"
+					},
+					"mind-reader.searchHighlighter.borderColorBottom": {
+						"order": 12,
+						"type": "string",
+						"markdownDescription": "Set the bottom border color to be used by the search highlighter.\n\nSyntax: _color_ or `transparent`\n\nAvailable color formats include:\n* `HEX(A)`: for Hexadecimal Colors: `#RRGGBB` or `#RRGGBBAA` to add transparency\n* `RGB(A)`: for RGB Colors: `rgb(red, green, blue)` or `rgba(red, green, blue, alpha)`\n* `HSL(A)`: for HSL Colors: `hsl(hue, saturation, lightness)` or `hsla(hue, saturation, lightness, alpha)`\n* `Predefined Color Names`: 140 color names are predefined in the HTML and CSS color specification: `blue`, `red`, `coral`, `brown`, [etc...](https://www.w3schools.com/colors/colors_names.asp)\n* `None`: For no color to be applied: Sometimes VSCode will pull a color from your theme, other times it uses black\n* `#C8C800` is our default",
+						"default": "#C8C800"
+					},
+					"mind-reader.searchHighlighter.borderColorLeft": {
+						"order": 13,
+						"type": "string",
+						"markdownDescription": "Set the left border color to be used by the search highlighter.\n\nSyntax: _color_ or `transparent`\n\nAvailable color formats include:\n* `HEX(A)`: for Hexadecimal Colors: `#RRGGBB` or `#RRGGBBAA` to add transparency\n* `RGB(A)`: for RGB Colors: `rgb(red, green, blue)` or `rgba(red, green, blue, alpha)`\n* `HSL(A)`: for HSL Colors: `hsl(hue, saturation, lightness)` or `hsla(hue, saturation, lightness, alpha)`\n* `Predefined Color Names`: 140 color names are predefined in the HTML and CSS color specification: `blue`, `red`, `coral`, `brown`, [etc...](https://www.w3schools.com/colors/colors_names.asp)\n* `None`: For no color to be applied: Sometimes VSCode will pull a color from your theme, other times it uses black\n* `#C8C800` is our default",
+						"default": "#C8C800"
+					},
+					"mind-reader.searchHighlighter.borderWidthTop": {
+						"order": 14,
+						"type": "string",
+						"markdownDescription": "Set the top border width to be used by the search highlighter.\n\nSyntax: `medium` or `thin` or `thick` or `length` or `none`\n* `medium`: Specifies a medium border. (usual default)\n* `thin`: Specifies a thin border\n* `thick`: Specifies a thick border\n* `length`: you to define the thickness of the border in [length](https://www.w3schools.com/cssref/css_units.asp) units.\n* `none`: No border width will be applied\n* `1px` is our default",
+						"default": "1px"
+					},
+					"mind-reader.searchHighlighter.borderWidthRight": {
+						"order": 15,
+						"type": "string",
+						"markdownDescription": "Set the right border width to be used by the search highlighter.\n\nSyntax: `medium` or `thin` or `thick` or `length` or `none`\n* `medium`: Specifies a medium border. (usual default)\n* `thin`: Specifies a thin border\n* `thick`: Specifies a thick border\n* `length`: you to define the thickness of the border in [length](https://www.w3schools.com/cssref/css_units.asp) units.\n* `none`: No border width will be applied\n* `16px` is our default\n\n#### \nborderWidthRight exhibits odd behavior, play around with different sizes to find what works best for your environment.",
+						"default": "16px"
+					},
+					"mind-reader.searchHighlighter.borderWidthBottom": {
+						"order": 16,
+						"type": "string",
+						"markdownDescription": "Set the bottom border width to be used by the search highlighter.\n\nSyntax: `medium` or `thin` or `thick` or `length` or `none`\n* `medium`: Specifies a medium border. (usual default)\n* `thin`: Specifies a thin border\n* `thick`: Specifies a thick border\n* `length`: you to define the thickness of the border in [length](https://www.w3schools.com/cssref/css_units.asp) units.\n* `none`: No border width will be applied\n* `1px` is our default",
+						"default": "1px"
+					},
+					"mind-reader.searchHighlighter.borderWidthLeft": {
+						"order": 17,
+						"type": "string",
+						"markdownDescription": "Set the left border width to be used by the search highlighter.\n\nSyntax: `medium` or `thin` or `thick` or `length` or `none`\n* `medium`: Specifies a medium border. (usual default)\n* `thin`: Specifies a thin border\n* `thick`: Specifies a thick border\n* `length`: you to define the thickness of the border in [length](https://www.w3schools.com/cssref/css_units.asp) units.\n* `none`: No border width will be applied\n* `1px` is our default",
+						"default": "1px"
+					},
+					"mind-reader.searchHighlighter.borderStyleTop": {
+						"order": 18,
+						"type": "string",
+						"markdownDescription": "Set the top border style to be used by the search highlighter.\n\nSyntax: `none` or `hidden` or `dotted` or `dashed` or `solid` or `double` or `groove` or `ridge` or `inset` or `outset`\n* `none`: No border will be applied (usual default)\n* `hidden`: The same as `none`\n* `dotted`: Dotted border\n* `dashed`: Dashed border\n* `solid (our default)`: Solid border\n* `double`: Double border\n* `groove`: 3D grooved border, depends on the border-color value.\n* `ridge`: 3D ridged border, depends on the border-color value.\n* `inset`: 3D inset border, depends on the border-color value.\n* `outset`: 3D outset border, depends on the border-color value.",
+						"default": "solid"
+					},
+					"mind-reader.searchHighlighter.borderStyleRight": {
+						"order": 19,
+						"type": "string",
+						"markdownDescription": "Set the right border style to be used by the search highlighter.\n\nSyntax: `none` or `hidden` or `dotted` or `dashed` or `solid` or `double` or `groove` or `ridge` or `inset` or `outset`\n* `none`: No border will be applied (usual default)\n* `hidden`: The same as `none`\n* `dotted`: Dotted border\n* `dashed`: Dashed border\n* `solid (our default)`: Solid border\n* `double`: Double border\n* `groove`: 3D grooved border, depends on the border-color value.\n* `ridge`: 3D ridged border, depends on the border-color value.\n* `inset`: 3D inset border, depends on the border-color value.\n* `outset`: 3D outset border, depends on the border-color value.",
+						"default": "solid"
+					},
+					"mind-reader.searchHighlighter.borderStyleBottom": {
+						"order": 20,
+						"type": "string",
+						"markdownDescription": "Set the bottom border style to be used by the search highlighter.\n\nSyntax: `none` or `hidden` or `dotted` or `dashed` or `solid` or `double` or `groove` or `ridge` or `inset` or `outset`\n* `none`: No border will be applied (usual default)\n* `hidden`: The same as `none`\n* `dotted`: Dotted border\n* `dashed`: Dashed border\n* `solid (our default)`: Solid border\n* `double`: Double border\n* `groove`: 3D grooved border, depends on the border-color value.\n* `ridge`: 3D ridged border, depends on the border-color value.\n* `inset`: 3D inset border, depends on the border-color value.\n* `outset`: 3D outset border, depends on the border-color value.",
+						"default": "solid"
+					},
+					"mind-reader.searchHighlighter.borderStyleLeft": {
+						"order": 21,
+						"type": "string",
+						"markdownDescription": "Set the left border style to be used by the search highlighter.\n\nSyntax: `none` or `hidden` or `dotted` or `dashed` or `solid` or `double` or `groove` or `ridge` or `inset` or `outset`\n* `none`: No border will be applied (usual default)\n* `hidden`: The same as `none`\n* `dotted`: Dotted border\n* `dashed`: Dashed border\n* `solid (our default)`: Solid border\n* `double`: Double border\n* `groove`: 3D grooved border, depends on the border-color value.\n* `ridge`: 3D ridged border, depends on the border-color value.\n* `inset`: 3D inset border, depends on the border-color value.\n* `outset`: 3D outset border, depends on the border-color value.",
+						"default": "solid"
+					},
+					"mind-reader.searchHighlighter.fontStyle": {
+						"order": 22,
+						"type": "string",
+						"markdownDescription": "Set the font style to be used by the search highlighter.\n\nSyntax: `normal` or `italic` or `oblique` or `none`\n* `normal (our default)`: Displays a normal font style. This is default\n* `italic`: Displays an italic font style\n* `oblique`: Displays an oblique font style\n* `none`: No font style will be applied",
+						"default": "normal"
+					},
+					"mind-reader.searchHighlighter.fontWeight": {
+						"order": 23,
+						"type": "string",
+						"markdownDescription": "Set the font weight to be used by the search highlighter.\n\nSyntax: `normal` or `bold` or `bolder` or `lighter` or _number_ or `none`\n* `normal`: Normal Characters. (usual default)\n* `bold`: Thick Characters\n* `bolder (our default)`: Thicker Characters\n* `lighter`: Lighter Characters\n * _number_: From `thin` to `thick` characters: `100`, `200`, `300`, `400`, `500`, `600`, `700`, `800`, or `900`: `400` is the same as normal, and `700` is the same as bold.\n* `none`: No font weight will be applied",
+						"default": "bolder"
+					},
+					"mind-reader.searchHighlighter.textDecoration": {
+						"order": 24,
+						"type": "string",
+						"markdownDescription": "Set the text decoration to be used by the search highlighter.\n\nSyntax: `(text-decoration-line)` `(text-decoration-color)` `(text-decoration-style)` `(text-decoration-thickness)`\n* `text-decoration-line (required)`: Sets the kind of text decoration to use: `underline`, `overline`, `line-through`\n* `text-decoration-color`: Sets the color of the text decoration\n* `text-decoration-style`: Sets the style of the text decoration: `solid`, `wavy`, `dotted`, `dashed`, `double`\n* `text-decoration-thickness`: Sets the thickness of the decoration line\n* `none (our default)`: No text decorations will be applied\n\n`Examples`:\n1. underline blue wavy 5px\n2. line-through\n3. underline overline dotted red",
+						"default": "none"
+					},
+					"mind-reader.searchHighlighter.textColor": {
+						"order": 25,
+						"type": "string",
+						"markdownDescription": "Set the text color to be used by the search highlighter.\n\nSyntax: _color_ or `transparent`\n\nAvailable color formats include:\n* `HEX(A)`: for Hexadecimal Colors: `#RRGGBB` or `#RRGGBBAA` to add transparency\n* `RGB(A)`: for RGB Colors: `rgb(red, green, blue)` or `rgba(red, green, blue, alpha)`\n* `HSL(A)`: for HSL Colors: `hsl(hue, saturation, lightness)` or `hsla(hue, saturation, lightness, alpha)`\n* `Predefined Color Names`: 140 color names are predefined in the HTML and CSS color specification: `blue`, `red`, `coral`, `brown`, [etc...](https://www.w3schools.com/colors/colors_names.asp)\n* `None`: For no color to be applied: Sometimes VSCode will pull a color from your theme, other times it uses black\n* `#FFFFFF` is our default",
+						"default": "#FFFFFF"
+					},
+					"mind-reader.searchHighlighter.selectionColor": {
+						"order": 25,
+						"type": "string",
+						"markdownDescription": "Set the text color to be used by the search highlighter.\n\nSyntax: _color_ or `transparent`\n\nAvailable color formats include:\n* `HEX(A)`: for Hexadecimal Colors: `#RRGGBB` or `#RRGGBBAA` to add transparency\n* `RGB(A)`: for RGB Colors: `rgb(red, green, blue)` or `rgba(red, green, blue, alpha)`\n* `HSL(A)`: for HSL Colors: `hsl(hue, saturation, lightness)` or `hsla(hue, saturation, lightness, alpha)`\n* `Predefined Color Names`: 140 color names are predefined in the HTML and CSS color specification: `blue`, `red`, `coral`, `brown`, [etc...](https://www.w3schools.com/colors/colors_names.asp)\n* `None`: For no color to be applied: Sometimes VSCode will pull a color from your theme, other times it uses black\n* `#FFFFFF` is our default",
+						"default": "#FFFFFF"
+					}
+				}
+			},
+			{
 				"title": "ev3dev browser configuration",
 				"properties": {
 					"ev3devBrowser.password": {
