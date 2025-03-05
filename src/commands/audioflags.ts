@@ -252,7 +252,6 @@ async function searchAudioFlags(): Promise<void> {
     );
 
     const backgroundColor: string = userConfig.get("backgroundColor") || "#4d4d00ff";
-    const textColor: string = userConfig.get("textColor") || "#ffffff";
     const borderColorTop: string = userConfig.get("borderColorTop") || "#c8c800ff";
     const borderColorBottom: string = userConfig.get("borderColorBottom") || "#c8c800ff";
     const borderColorLeft: string = userConfig.get("borderColorLeft") || "#c8c800ff";
@@ -265,13 +264,26 @@ async function searchAudioFlags(): Promise<void> {
     const borderWidthBottom: string = userConfig.get("borderWidthBottom") || "1px";
     const borderWidthLeft: string = userConfig.get("borderWidthLeft") || "1px";
     const borderWidthRight: string = userConfig.get("borderWidthRight") || "1px";
+    const fontStyle: string = userConfig.get("fontStyle") || "normal";
+	const fontWeight: string = userConfig.get("fontWeight") || "bolder";
+	const outlineColor: string = userConfig.get("outlineColor") || "#c8c800ff";
+	const outlineStyle: string = userConfig.get("outlineStyle") || "solid";
+	const outlineWidth: string = userConfig.get("outlineWidth") || "1px";
+	const textColor: string = userConfig.get("textColor") || "#FFFFFF";
+	const textDecoration: string = userConfig.get("textDecoration") || "none";
 
     const highlightDecoration = window.createTextEditorDecorationType({
         backgroundColor: `${backgroundColor}`,
         color: `${textColor}`,
+        fontStyle: `${fontStyle}`,
+		fontWeight: `${fontWeight}`,
         borderColor: `${borderColorTop} ${borderColorBottom} ${borderColorLeft} ${borderColorRight}`,
         borderStyle: `${borderStyleTop} ${borderStyleBottom} ${borderStyleLeft} ${borderStyleRight}`,
-        borderWidth: `${borderWidthTop} ${borderWidthBottom} ${borderWidthLeft} ${borderWidthRight}`
+        borderWidth: `${borderWidthTop} ${borderWidthBottom} ${borderWidthLeft} ${borderWidthRight}`,
+        outlineColor: `${outlineColor}`,
+		outlineWidth: `${outlineWidth}`,
+		outlineStyle: `${outlineStyle}`,
+		textDecoration: `${textDecoration}`
     })
 
     // If the search value changes, check to see if the value matches any text within flagged lines
