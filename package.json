@@ -1064,8 +1064,8 @@
 					"mind-reader.searchHighlighter.borderWidthRight": {
 						"order": 15,
 						"type": "string",
-						"markdownDescription": "Set the right border width to be used by the search highlighter.\n\nSyntax: `medium` or `thin` or `thick` or `length` or `none`\n* `medium`: Specifies a medium border. (usual default)\n* `thin`: Specifies a thin border\n* `thick`: Specifies a thick border\n* `length`: you to define the thickness of the border in [length](https://www.w3schools.com/cssref/css_units.asp) units.\n* `none`: No border width will be applied\n* `16px` is our default\n\n#### \nborderWidthRight exhibits odd behavior, play around with different sizes to find what works best for your environment.",
-						"default": "16px"
+						"markdownDescription": "Set the right border width to be used by the search highlighter.\n\nSyntax: `medium` or `thin` or `thick` or `length` or `none`\n* `medium`: Specifies a medium border. (usual default)\n* `thin`: Specifies a thin border\n* `thick`: Specifies a thick border\n* `length`: you to define the thickness of the border in [length](https://www.w3schools.com/cssref/css_units.asp) units.\n* `none`: No border width will be applied\n* `1px` is our default\n\n#### \nborderWidthRight exhibits odd behavior, play around with different sizes to find what works best for your environment.",
+						"default": "1px"
 					},
 					"mind-reader.searchHighlighter.borderWidthBottom": {
 						"order": 16,
