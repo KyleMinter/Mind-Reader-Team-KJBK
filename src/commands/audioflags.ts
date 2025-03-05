@@ -39,7 +39,7 @@ export const audioFlagCommands: CommandEntry[] = [
     },
     {
         name: "mind-reader.configureSearchHighlight",
-        callback: changeHighlightColor
+        callback: configureSearchHighlight
     }
 ];
 // Map to store audio flags for each text document.
@@ -251,20 +251,20 @@ async function searchAudioFlags(): Promise<void> {
             "mind-reader.searchHighlighter",
     );
 
-    const backgroundColor: string = userConfig.get("backgroundColor") || "#ffff004d";
+    const backgroundColor: string = userConfig.get("backgroundColor") || "#4d4d00ff";
     const textColor: string = userConfig.get("textColor") || "#ffffff";
-    const borderColorTop: string = userConfig.get("borderColorTop") || "#c8c80080";
-    const borderColorBottom: string = userConfig.get("borderColorBottom") || "#c8c80080";
-    const borderColorLeft: string = userConfig.get("borderColorLeft") || "#c8c80080";
-    const borderColorRight: string = userConfig.get("borderColorRight") || "#c8c80080";
+    const borderColorTop: string = userConfig.get("borderColorTop") || "#c8c800ff";
+    const borderColorBottom: string = userConfig.get("borderColorBottom") || "#c8c800ff";
+    const borderColorLeft: string = userConfig.get("borderColorLeft") || "#c8c800ff";
+    const borderColorRight: string = userConfig.get("borderColorRight") || "#c8c800ff";
     const borderStyleTop: string = userConfig.get("borderStyleTop") || "solid";
     const borderStyleBottom: string = userConfig.get("borderStyleBottom") || "solid";
     const borderStyleLeft: string = userConfig.get("borderStyleLeft") || "solid";
     const borderStyleRight: string = userConfig.get("borderStyleRight") || "solid";
-    const borderWidthTop: string = userConfig.get("borderWidthTop") || "2px";
-    const borderWidthBottom: string = userConfig.get("borderWidthBottom") || "2px";
-    const borderWidthLeft: string = userConfig.get("borderWidthLeft") || "2px";
-    const borderWidthRight: string = userConfig.get("borderWidthRight") || "2px";
+    const borderWidthTop: string = userConfig.get("borderWidthTop") || "1px";
+    const borderWidthBottom: string = userConfig.get("borderWidthBottom") || "1px";
+    const borderWidthLeft: string = userConfig.get("borderWidthLeft") || "1px";
+    const borderWidthRight: string = userConfig.get("borderWidthRight") || "1px";
 
     const highlightDecoration = window.createTextEditorDecorationType({
         backgroundColor: `${backgroundColor}`,
@@ -374,16 +374,16 @@ async function searchAudioFlags(): Promise<void> {
     searchBar.show()
 }
 
-async function changeHighlightColor(): Promise<void> {
-    let currentPanel: vscode.WebviewPanel | undefined;
+let currentPanel: vscode.WebviewPanel | undefined;
 
+async function configureSearchHighlight(): Promise<void> {
     const columnToShowIn = vscode.window.activeTextEditor
         ? vscode.window.activeTextEditor.viewColumn
         : undefined;
 
     if (!currentPanel) {
         currentPanel = vscode.window.createWebviewPanel(
-            "changeHighlightColor",
+            "configureSearchHighlight",
             "Highlight Color Picker",
             vscode.ViewColumn.One,
             {
