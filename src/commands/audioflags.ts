@@ -363,26 +363,35 @@ async function searchAudioFlags(): Promise<void> {
         // Check whether to move through all audio flags or flags that match the search
         if (button === moveButton)
         {
-            if (matchingLines.length > 0)
-            {
-                const searchFlags: Flag[] = [];
-                // Match line# with flags, add to Flag[]
-                for (const flag of audioFlags)
-                {
-                    for (const l of matchingLines)
-                    {
-                        if (flag.lineNum === l)
-                            searchFlags.push(flag);
-                    }
-                }
-                moveToAudioFlag(searchFlags); 
-            }
-            else 
-            {
-                moveToAudioFlag(audioFlags); // Empty, loop through all flags
-            }
+            moveCursor();
         }
     });
+
+    searchBar.onDidAccept(() => {
+        moveCursor();
+        searchBar.dispose();
+    });
+
+    function moveCursor() {
+        if (matchingLines.length > 0)
+        {
+            const searchFlags: Flag[] = [];
+            // Match line# with flags, add to Flag[]
+            for (const flag of audioFlags)
+            {
+                for (const l of matchingLines)
+                {
+                    if (flag.lineNum === l)
+                        searchFlags.push(flag);
+                }
+            }
+            moveToAudioFlag(searchFlags); 
+        }
+        else 
+        {
+            moveToAudioFlag(audioFlags); // Empty, loop through all flags
+        }
+    }
 
 
     searchBar.show()
