@@ -19,6 +19,7 @@ import { playFlagMidi, invokeMidiOutput } from "./midi";
 import * as vscode from "vscode";
 import * as path from "path";
 import * as fs from "fs";
+import { z } from "zod";
 
 export const audioFlagCommands: CommandEntry[] = [
     {
@@ -792,25 +793,25 @@ export class AudioFlagStorage {
         else
         {
             // Parse the string returned from storage and return it as a Document object.
-            try
-            {
-                const data = JSON.parse(value);
+            try {
+                // Parse the JSON into an object and then parse the object against the ZOD schema.
+                const json = JSON.parse(value);
+                const data = Document.schema.parse(json);
 
-                // Validate parsed data
-               /* if (typeof data.fileName !== 'string' ||
-                    typeof data.lineCount !== 'number' ||
-                    !Array.isArray(data.audioFlags) ||
-                    !(data.audioFlags as unknown[]).every(flag => typeof flag === 'string'))
-                    {
-                        throw new Error("Invalid data format");
-                    }*/
+                // Reconstruct the document object since the ZOD parser returns a non-extensible object.
+                const flags: Flag[] = [];
+                data.audioFlags.forEach((flag) => {
+                    const note = flag.note;
+                    const tone: Tone = new Tone(note.name, note.instrument, note.note);
+                    flags.push(new Flag(flag.lineNum, tone));
+                })
+                const document = new Document(data.fileName, data.lineCount, flags);
 
-                return new Document(data.fileName, data.lineCount, data.audioFlags);
-            } catch (error)
-            {
-                //console.error(`Failed to parse or validate stored data for key "${key}`, error);
-                // Remove invalid data
-                this.storage.update(key,undefined);
+                return document;
+            }
+            catch {
+                // Remove invalid data.
+                this.storage.update(key, undefined);
                 return undefined;
             }
             
@@ -841,39 +842,18 @@ export class AudioFlagStorage {
 }
 
 /**
- * A class representing an open document. It contains a file name, line count, and an array consisting of audio flags.
- */
-class Document {
-    fileName: string;
-    lineCount: number;
-    readonly audioFlags: Flag[];
-
-    constructor(file: string, lines: number, flags?: Flag[]) {
-        this.fileName = file;
-        this.lineCount = lines;
-        this.audioFlags = flags ?? [];
-    }
-}
-
-/**
- * A class representing an Audio Flag. It contains a line number and a note.
- */
-class Flag {
-    lineNum: number;
-    note: Tone;
-
-    constructor(lineNum: number, note: Tone) {
-        this.lineNum = lineNum;
-        this.note = note;
-    }
-}
-/**
  * A class representing a Tone/Note to be used for Audio Flags.
  */
 export class Tone {
     name: string;
     instrument: number;
     note: string;
+
+    static readonly schema = z.object({
+        name: z.string(),
+        instrument: z.number(),
+        note: z.string()
+    });
 
     constructor(name: string, instrument: number, note: string) {
         this.name = name;
@@ -898,6 +878,45 @@ export class Tone {
         {name: "Marimba3", instrument: 12, note: "G6"}
     ];
     
+}
+
+/**
+ * A class representing an Audio Flag. It contains a line number and a note.
+ */
+class Flag {
+    lineNum: number;
+    note: Tone;
+
+    static readonly schema = z.object({
+        lineNum: z.number(),
+        note: Tone.schema
+    });
+
+    constructor(lineNum: number, note: Tone) {
+        this.lineNum = lineNum;
+        this.note = note;
+    }
+}
+
+/**
+ * A class representing an open document. It contains a file name, line count, and an array consisting of audio flags.
+ */
+class Document {
+    fileName: string;
+    lineCount: number;
+    readonly audioFlags: Flag[];
+
+    static readonly schema = z.object({
+        fileName: z.string(),
+        lineCount: z.number(),
+        audioFlags: z.array(Flag.schema).readonly()
+    })
+
+    constructor(file: string, lines: number, flags?: Flag[]) {
+        this.fileName = file;
+        this.lineCount = lines;
+        this.audioFlags = flags ?? [];
+    }
 }
 
 type ChangeHighlightWebviewProps = {
