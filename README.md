@@ -90,3 +90,12 @@ For MacOS users, you may need to install a package manager like [Homebrew](https
 -   Alex Tomjack: [\<Alextomjack@my.unt.edu\>](mailto:alextomjack@my.unt.edu)
 -   Kelsee Villareal: [\<KelseeVillareal@my.unt.edu\>](mailto:kelseevillareal@my.unt.edu)
 -   Bryan Tang: [\<BryanTang@my.unt.edu\>](mailto:bryantang@my.unt.edu)
+
+### Team KJBK
+
+#### Fall 2024 Semester
+
+-   Kennedy Boynton: [\<KennedyBoynton@my.unt.edu\>](mailto:KennedyBoynton@my.unt.edu)
+-   Kyle Minter: [\<KyleMinter2@my.unt.edu\>](mailto:KyleMinter2@my.unt.edu)
+-   Brett Berglund: [\<BrettBerglund@my.unt.edu\>](mailto:BrettBerglund@my.unt.edu)
+-   Jacob Franks: [\<JacobFranks2@my.unt.edu\>](mailto:JacobFranks2@my.unt.edu)
