@@ -468,6 +468,9 @@ async function configureSearchHighlight(): Promise<void> {
                 .getConfiguration("mind-reader.searchHighlighter")
                 .update("textColor", tColor, true);
             workspace
+				.getConfiguration("mind-reader.searchHighlighter")
+				.update("outlineColor", olColor, true);
+            workspace
                 .getConfiguration("mind-reader.searchHighlighter")
                 .update("borderColorTop", olColor, true);
             workspace
