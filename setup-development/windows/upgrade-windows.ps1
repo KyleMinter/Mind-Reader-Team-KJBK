@@ -13,7 +13,7 @@ If you download Microsoft's developer VM, you have it!
 As WinGet is built into Windows, it sidesteps any annoying third-party package managers, and is the lowest common denominator for package installation.
 
 .link
-https://github.com/jcode999/Mind_Reader/
+https://github.com/KyleMinter/Mind-Reader-Team-KJBK
 
 .parameter GitDir
 Path to clone the git repo into (Default: $HOME/git/)

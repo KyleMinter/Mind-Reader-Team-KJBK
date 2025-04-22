@@ -34,7 +34,7 @@ function dryrun {
 }
 
 setupdir="Mind_Reader/setup-development/linux"
-repouri="https://github.com/jcode999/Mind_Reader.git"
+repouri="https://github.com/KyleMinter/Mind-Reader-Team-KJBK"
 
 # Install git
 if which git; then
