@@ -5,7 +5,6 @@ import * as os from "os";
 import * as path from "path";
 import * as ssh2Streams from "ssh2-streams";
 import * as temp from "temp";
-
 import * as vscode from "vscode";
 
 import {
@@ -862,11 +861,11 @@ class DeviceTreeItem extends vscode.TreeItem {
 				icon = "red-circle.svg";
 				break;
 		}
-
+		
 		if (icon) {
 			this.iconPath = {
-				dark: path.join(resourceDir, "icons", "dark", icon),
-				light: path.join(resourceDir, "icons", "light", icon),
+				dark: vscode.Uri.parse(path.join(resourceDir, "icons", "dark", icon)),
+				light: vscode.Uri.parse(path.join(resourceDir, "icons", "light", icon)),
 			};
 		} else {
 			this.iconPath = undefined;
