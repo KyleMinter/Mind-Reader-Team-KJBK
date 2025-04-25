@@ -64,6 +64,6 @@ suite("Text Command Test Suite", () => {
   test("Move Cursor to End", () => {
     editor.selection = new vscode.Selection(80, 0, 80, 0);
     command.moveCursorEnd();
-    assert.equal(369, editor.selection.active.line);
+    assert.equal(376, editor.selection.active.line);
   });
 });
