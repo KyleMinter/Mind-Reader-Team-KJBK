@@ -42,4 +42,4 @@ API page if you need more help.
 
 # Notes
 
-Be sure to checkout [PR Checklist](https://github.com/kelsvilla/LegoMindstormsVSExtension/wiki/PR-Checklist) to learn what to look out for when you make a pull request.
+Be sure to checkout [PR Checklist](https://github.com/KyleMinter/Mind-Reader-Team-KJBK/wiki/PR-Checklist) to learn what to look out for when you make a pull request.

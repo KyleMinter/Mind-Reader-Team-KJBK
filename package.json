@@ -1,15 +1,15 @@
 {
 	"name": "mind-reader",
 	"displayName": "Mind Reader",
-	"homepage": "https://github.com/kelsvilla/LegoMindstormsVSExtension/wiki",
+	"homepage": "https://github.com/KyleMinter/Mind-Reader-Team-KJBK/wiki",
 	"l10n": "./l10n",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/kelsvilla/LegoMindstormsVSExtension"
+		"url": "git+https://github.com/KyleMinter/Mind-Reader-Team-KJBK"
 	},
 	"publisher": "SpamArtists",
 	"bugs": {
-		"url": "https://github.com/kelsvilla/LegoMindstormsVSExtension/issues"
+		"url": "https://github.com/KyleMinter/Mind-Reader-Team-KJBK/issues"
 	},
 	"contributors": [
 		"Jake Grossman <JacobGrossman2@my.unt.edu>",
