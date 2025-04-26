@@ -35,9 +35,9 @@
 		"Brett Berglund <BrettBerglund@my.unt.edu>",
 		"Jacob Franks <JacobFranks2@my.unt.edu>"
 	],
-	"version": "4.0.0",
+	"version": "5.0.0",
 	"engines": {
-		"vscode": "^1.86.0"
+		"vscode": "^1.99.3"
 	},
 	"categories": [
 		"Other"
